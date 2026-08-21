@@ -170,7 +170,7 @@ FG3     = _palette["FG3"]
 BORDER  = _palette["BORDER"]
 CARD_TINT = _palette["CARD_TINT"]
 
-VERSION  = "1.17.1"
+VERSION  = "1.17.2"
 
 # Не проверяем обновления чаще раза в сутки — незачем дёргать GitHub API
 # на каждый запуск, а лимит анонимных запросов (60/час на IP) и без того
