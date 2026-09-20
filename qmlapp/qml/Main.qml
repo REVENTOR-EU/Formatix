@@ -462,7 +462,9 @@ ApplicationWindow {
                                 onActivated: function(i) { B.resizeModeKey = model[i][1] }
                             }
                             // Пропорциональное изменение: одно из полей
-                            // вычисляется автоматически и блокируется
+                            // вычисляется автоматически и блокируется.
+                            // Плейсхолдер «—» исчезает при клике — сразу
+                            // можно печатать число.
                             Rectangle {
                                 visible: B.resizeModeKey !== "no_change"
                                 property bool editable: B.resizeModeKey === "custom"
@@ -472,11 +474,23 @@ ApplicationWindow {
                                 color: editable ? B.card : B.bg3
                                 border.color: editable ? B.border : B.bg3; border.width: 1
                                 TextInput {
-                                    anchors.centerIn: parent; text: B.wVal
+                                    id: wInput
+                                    anchors.centerIn: parent; width: parent.width - 8
+                                    text: B.wVal; clip: true
                                     color: parent.editable ? B.fg : B.fg3
                                     font.pixelSize: 13; horizontalAlignment: TextInput.AlignHCenter
                                     enabled: parent.editable
                                     onEditingFinished: B.wVal = text.trim()
+                                }
+                                Text {
+                                    visible: wInput.text === "" && !wInput.activeFocus
+                                    text: "—"; color: B.fg3; font.pixelSize: 13
+                                    anchors.centerIn: parent
+                                }
+                                MouseArea {
+                                    anchors.fill: parent; enabled: parent.editable
+                                    cursorShape: Qt.IBeamCursor
+                                    onClicked: { wInput.forceActiveFocus(); wInput.cursorPosition = wInput.text.length }
                                 }
                             }
                             Text { text: "×"; color: B.fg3; visible: B.resizeModeKey !== "no_change" }
@@ -489,11 +503,23 @@ ApplicationWindow {
                                 color: editable ? B.card : B.bg3
                                 border.color: editable ? B.border : B.bg3; border.width: 1
                                 TextInput {
-                                    anchors.centerIn: parent; text: B.hVal
+                                    id: hInput
+                                    anchors.centerIn: parent; width: parent.width - 8
+                                    text: B.hVal; clip: true
                                     color: parent.editable ? B.fg : B.fg3
                                     font.pixelSize: 13; horizontalAlignment: TextInput.AlignHCenter
                                     enabled: parent.editable
                                     onEditingFinished: B.hVal = text.trim()
+                                }
+                                Text {
+                                    visible: hInput.text === "" && !hInput.activeFocus
+                                    text: "—"; color: B.fg3; font.pixelSize: 13
+                                    anchors.centerIn: parent
+                                }
+                                MouseArea {
+                                    anchors.fill: parent; enabled: parent.editable
+                                    cursorShape: Qt.IBeamCursor
+                                    onClicked: { hInput.forceActiveFocus(); hInput.cursorPosition = hInput.text.length }
                                 }
                             }
                         }

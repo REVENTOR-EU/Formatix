@@ -132,6 +132,21 @@ python formatix.py
 
 ---
 
+## What's New in v2.0
+
+This release is a major UI and engine refresh:
+
+* **Brand-new Qt Quick (QML) interface** — Apple-inspired design, Inter typeface, rounded cards, light & dark themes with **live switching** (no restart), and instant language switching
+* **JPEG XL (JXL) output** — next-generation compression alongside AVIF, WEBP and HEIC
+* **Skip-if-larger protection** — results are encoded in memory first; if "compression" would produce a file larger than the original, nothing is written to disk at all (zero unnecessary writes)
+* **Save next to the original** — leave the save folder empty and converted files land beside their sources
+* **Delete originals after conversion** — optional, only on success, never when a result was skipped
+* **Folder drag & drop** — drop a folder and every supported image inside it (including subfolders) is loaded
+* **Custom filename templates with live preview** — elements joined with an underscore separator (e.g. `photo_final_001.jpg`)
+* **Per-side resize fields** — in proportional modes the auto-computed side is grayed out automatically
+
+---
+
 ## Settings & Configuration
 
 Settings are stored locally in `~/.formatix_image_converter_settings.json`.
@@ -162,6 +177,12 @@ You can enable or disable settings persistence in the Settings window. When disa
 
 **Q: How do I compare the original and converted image?**
 > After conversion, click the **Compare** button — it opens a side-by-side view so you can evaluate quality and file size.
+
+---
+
+## Acknowledgements
+
+Windows build and the Qt Quick interface refresh contributed by **[REVENTOR](https://reventor.eu)**.
 
 ---
 
