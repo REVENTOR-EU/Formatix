@@ -645,7 +645,10 @@ class Backend(QObject):
 
         def worker():
             total = len(files)
-            cfg_tpl = f"fmt:{fmt}|{q_part}|dir:{{}}|mode:{resize_key}|w:{w}|h:{h}|{fn_part}"
+            # Плейсхолдер @@DIR@@ вместо str.format: fn_part содержит repr
+            # токенов с фигурными скобками, и format() падал с KeyError,
+            # убивая поток воркера (конвертация «зависала» навсегда).
+            cfg_tpl = f"fmt:{fmt}|{q_part}|dir:@@DIR@@|mode:{resize_key}|w:{w}|h:{h}|{fn_part}"
             workers_n = min(os.cpu_count() or 4, 8)
             reserved = {}
             alloc = {}
@@ -662,7 +665,7 @@ class Backend(QObject):
                 for f in files:
                     fdir, out_name = alloc[f["path"]]
                     fu = pool.submit(convert_one, f["path"], fdir, fmt, out_name, quality,
-                                     resize_key, w, h, cfg_tpl.format(fdir), resize_key,
+                                     resize_key, w, h, cfg_tpl.replace("@@DIR@@", fdir), resize_key,
                                      "percent" if target_bytes is None else "size", target_bytes,
                                      cache=cache, lock=lock)
                     futures[fu] = f
