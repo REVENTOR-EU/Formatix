@@ -10,7 +10,7 @@ ApplicationWindow {
     width: 1120; height: 760
     minimumWidth: 980; minimumHeight: 640
     visible: true
-    title: "Formatix Image Converter"
+    title: "REVENTOR Image Compressor"
     color: B.bg
 
     // ── локализация: зависимость от B.langRev заставляет биндинги обновляться ──
@@ -205,19 +205,16 @@ ApplicationWindow {
             RowLayout {
                 anchors.fill: parent; anchors.leftMargin: 20; anchors.rightMargin: 16; spacing: 10
                 Text { text: "⬡"; color: B.accent; font.pixelSize: 22 }
-                Text { text: "Formatix"; color: B.fg; font.pixelSize: 17; font.weight: Font.DemiBold }
+                Text { text: "REVENTOR Image Compressor"; color: B.fg; font.pixelSize: 15; font.weight: Font.DemiBold }
                 Text { text: "v" + B.version; color: B.fg3; font.pixelSize: 12 }
                 Item { Layout.fillWidth: true }
                 AppButton { label: tt("settings_title"); onActivated: { settingsSheet.openSheet() } }
-                Text {
-                    text: "♥"; color: B.fg3; font.pixelSize: 18
-                    MouseArea {
-                        anchors.fill: parent; cursorShape: Qt.PointingHandCursor
-                        hoverEnabled: true
-                        onEntered: parent.color = B.red
-                        onExited: parent.color = B.fg3
-                        onClicked: Qt.openUrlExternally("https://github.com/cyber-anderson/Formatix#%EF%B8%8F-support-the-project")
-                    }
+                Image {
+                    source: B.reventorBanner
+                    fillMode: Image.PreserveAspectFit
+                    smooth: true; mipmap: true
+                    height: 18; width: 120
+                    MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: B.openReventor() }
                 }
             }
         }
@@ -670,74 +667,6 @@ ApplicationWindow {
                 }
             }
 
-            RowLayout { Layout.fillWidth: true; spacing: 10
-                Text { text: "ⓘ " + tt("about"); color: B.accent; font.pixelSize: 13
-                    MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: {
-                        settingsMain.visible = false
-                        settingsAbout.visible = true
-                    } } }
-                Item { Layout.fillWidth: true }
-            }
-            }
-
-            // ── экран «About» внутри окна настроек ────────────────────────
-            ColumnLayout {
-                id: settingsAbout
-                visible: false
-                width: parent.width
-                spacing: 14
-
-            Text {
-                Layout.fillWidth: true
-                horizontalAlignment: Text.AlignHCenter
-                text: "ⓘ " + tt("about"); color: B.fg; font.pixelSize: 15; font.weight: Font.DemiBold
-            }
-            Text {
-                Layout.fillWidth: true
-                horizontalAlignment: Text.AlignHCenter
-                text: tt("original_author"); color: B.fg2; font.pixelSize: 12
-            }
-            Text {
-                Layout.fillWidth: true
-                horizontalAlignment: Text.AlignHCenter
-                text: "github.com/cyber-anderson"; color: B.accent; font.pixelSize: 11
-                MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: B.openOriginalAuthor() }
-            }
-
-            Text {
-                Layout.fillWidth: true
-                horizontalAlignment: Text.AlignHCenter
-                text: tt("contrib_line"); color: B.fg2; font.pixelSize: 11
-            }
-
-            Item {
-                Layout.fillWidth: true
-                height: 26
-                Image {
-                    anchors.centerIn: parent
-                    width: 200; height: 24
-                    source: B.reventorBanner
-                    fillMode: Image.PreserveAspectFit
-                    smooth: true; mipmap: true
-                }
-                MouseArea {
-                    anchors.fill: parent; cursorShape: Qt.PointingHandCursor
-                    onClicked: B.openReventor()
-                }
-            }
-            Text {
-                Layout.fillWidth: true
-                horizontalAlignment: Text.AlignHCenter
-                text: "reventor.eu"; color: B.accent; font.pixelSize: 10
-                MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: B.openReventor() }
-            }
-
-            Text {
-                Layout.alignment: Qt.AlignHCenter
-                text: "← " + tt("settings_title"); color: B.accent; font.pixelSize: 12
-                MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor
-                            onClicked: { settingsAbout.visible = false; settingsMain.visible = true } }
-            }
             }
 
             Item { Layout.fillHeight: true }
