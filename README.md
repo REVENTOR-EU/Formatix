@@ -72,7 +72,7 @@ Formatix Image Converter is a powerful desktop application designed to batch con
 
 * **OS:** Windows (if using the pre-compiled `.exe` standalone app)
 * **Python:** 3.10+ *(only required if running from source)*
-* **Dependencies:** `Pillow`, `pillow-heif`, `pillow-jxl-plugin`, `tkinterdnd2`, `resvg-py` *(only required if running from source)*
+* **Dependencies:** `Pillow`, `pillow-heif`, `pillow-jxl-plugin`, `PySide6`, `resvg-py` *(only required if running from source)*
 
 ---
 
@@ -86,13 +86,15 @@ To run the script from the source code, you need **Python 3.10+** and the necess
 
 1. Install the required dependencies:
 ```bash
-pip install Pillow pillow-heif pillow-jxl-plugin tkinterdnd2 resvg-py
+pip install Pillow pillow-heif pillow-jxl-plugin PySide6 resvg-py
 ```
 2. Make sure all project files are in the same folder:
 
 | File | Description |
 | :--- | :--- |
-| `formatix.py` | Main app / entry point |
+| `formatix.py` | Main app / entry point (Qt Quick UI) |
+| `qmlapp/` | QML interface implementation |
+| `formatix_legacy_tk.py` | Legacy Tkinter UI |
 | `localization.py` | UI language strings & system language detection |
 | `converter.py` | Image conversion & processing logic |
 | `compare.py` | Before/after comparison window |
