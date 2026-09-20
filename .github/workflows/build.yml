@@ -23,11 +23,11 @@ jobs:
             binary: REVENTOR-Image-Compressor.exe
             icon: --icon icon.ico
           - os: macos-latest
-            artifact: REVENTOR-Image-Compressor-macOS
+            artifact: REVENTOR-Image-Compressor-macOS.zip
             binary: REVENTOR-Image-Compressor
             icon: ""
           - os: ubuntu-22.04
-            artifact: REVENTOR-Image-Compressor-Linux
+            artifact: REVENTOR-Image-Compressor-Linux-AppImage
             binary: REVENTOR-Image-Compressor
             icon: ""
     runs-on: ${{ matrix.os }}
@@ -61,15 +61,85 @@ jobs:
           --exclude-module numpy
           formatix.py
 
-      - name: Rename artifact
+      - name: Package macOS .app bundle
+        if: runner.os == 'macOS'
         shell: bash
         run: |
           mkdir -p dist_out
-          if [ -f "dist/REVENTOR-Image-Compressor.exe" ]; then
-            mv dist/REVENTOR-Image-Compressor.exe "dist_out/${{ matrix.artifact }}"
-          else
-            mv dist/REVENTOR-Image-Compressor "dist_out/${{ matrix.artifact }}"
-          fi
+          cd dist
+          zip -r ../dist_out/REVENTOR-Image-Compressor-macOS.zip             "REVENTOR-Image-Compressor.app"
+
+      - name: Package Linux archive with installer
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          mkdir -p pkg
+          cp dist/REVENTOR-Image-Compressor pkg/
+          chmod +x pkg/REVENTOR-Image-Compressor
+          cp packaging/reventor-image-compressor.desktop pkg/
+          cp packaging/reventor-logo.png pkg/reventor.png
+          cat > pkg/install.sh <<'EOS'
+          #!/bin/bash
+          set -e
+          sudo cp REVENTOR-Image-Compressor /usr/local/bin/
+          sudo mkdir -p /usr/share/icons/hicolor/256x256/apps
+          sudo cp reventor.png /usr/share/icons/hicolor/256x256/apps/reventor-image-compressor.png
+          mkdir -p ~/.local/share/applications
+          sed 's|/opt/reventor|/usr/local/bin|; s|reventor.png|/usr/share/icons/hicolor/256x256/apps/reventor-image-compressor.png|'             reventor-image-compressor.desktop > ~/.local/share/applications/reventor-image-compressor.desktop
+          echo "Installed. Find 'REVENTOR Image Compressor' in your application menu, or run: REVENTOR-Image-Compressor"
+          EOS
+          chmod +x pkg/install.sh
+          tar -czf dist_out/REVENTOR-Image-Compressor-Linux.tar.gz -C pkg .
+
+      - name: Build Linux AppImage (onedir)
+        if: runner.os == 'Linux'
+        shell: bash
+        run: >
+          pyinstaller --noconfirm --clean --onedir --windowed
+          --name REVENTOR-Image-Compressor
+          --additional-hooks-dir hooks
+          --add-data "fonts:fonts"
+          --add-data "qmlapp/qml:qmlapp/qml"
+          --add-data "assets:assets"
+          --exclude-module numpy
+          formatix.py
+
+      - name: Create Linux AppImage
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          curl -sL -o appimagetool.AppImage https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage
+          chmod +x appimagetool.AppImage
+          mkdir -p AppDir
+          cp -r dist/REVENTOR-Image-Compressor/* AppDir/
+          cat > AppDir/reventor-image-compressor.desktop <<'EOS'
+          [Desktop Entry]
+          Type=Application
+          Name=REVENTOR Image Compressor
+          GenericName=Image Converter
+          Comment=Batch convert, resize, and compress images
+          Exec=REVENTOR-Image-Compressor
+          Icon=reventor-logo
+          Terminal=false
+          Categories=Graphics;Utility;
+          EOS
+          cp packaging/reventor-logo.png AppDir/reventor-logo.png
+          ln -sf reventor-logo.png AppDir/.DirIcon
+          cat > AppDir/AppRun <<'EOS'
+          #!/bin/sh
+          HERE="$(dirname "$(readlink -f "$0")")"
+          exec "${HERE}/REVENTOR-Image-Compressor" "$@"
+          EOS
+          chmod +x AppDir/AppRun
+          ./appimagetool.AppImage --appimage-extract-and-run AppDir             REVENTOR-Image-Compressor-x86_64.AppImage
+          mv REVENTOR-Image-Compressor-x86_64.AppImage dist_out/
+
+      - name: Rename artifact
+        if: runner.os == 'Windows'
+        shell: bash
+        run: |
+          mkdir -p dist_out
+          mv dist/REVENTOR-Image-Compressor.exe "dist_out/${{ matrix.artifact }}"
 
       - uses: actions/upload-artifact@v4
         with:

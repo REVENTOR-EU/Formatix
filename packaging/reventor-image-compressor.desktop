@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=REVENTOR Image Compressor
+GenericName=Image Converter
+Comment=Batch convert, resize, and compress images
+Exec=/opt/reventor/REVENTOR-Image-Compressor
+Icon=/opt/reventor/reventor.png
+Terminal=false
+Categories=Graphics;Utility;
