@@ -71,8 +71,20 @@ try:
 except Exception:
     pass
 
-FORMATS = (["AVIF"] if AVIF_AVAILABLE else []) + ["WEBP", "JPEG"] + (["HEIC"] if HEIF_AVAILABLE else []) + ["PNG", "BMP", "TIFF", "ICO"]
-IMG_EXTS = {".jpg", ".jpeg", ".png", ".webp", ".bmp", ".tiff", ".tif", ".gif", ".ico"} | ({".avif"} if AVIF_AVAILABLE else set()) | ({".heic", ".heif"} if HEIF_AVAILABLE else set()) | ({".svg"} if SVG_AVAILABLE else set())
+JXL_AVAILABLE = False
+try:
+    import pillow_jxl  # noqa: F401 - регистрирует формат JXL в Pillow
+    # Реальная проверка возможности сохранения — пробуем закодировать 1x1 JXL
+    _test = Image.new("RGB", (1, 1))
+    _buf  = io.BytesIO()
+    _test.save(_buf, "JXL", quality=50)
+    JXL_AVAILABLE = True
+    del _test, _buf
+except Exception:
+    pass
+
+FORMATS = (["AVIF"] if AVIF_AVAILABLE else []) + ["WEBP", "JPEG"] + (["HEIC"] if HEIF_AVAILABLE else []) + ["JXL"] * JXL_AVAILABLE + ["PNG", "BMP", "TIFF", "ICO"]
+IMG_EXTS = {".jpg", ".jpeg", ".png", ".webp", ".bmp", ".tiff", ".tif", ".gif", ".ico"} | ({".avif"} if AVIF_AVAILABLE else set()) | ({".heic", ".heif"} if HEIF_AVAILABLE else set()) | ({".svg"} if SVG_AVAILABLE else set()) | ({".jxl"} if JXL_AVAILABLE else set())
 
 
 # ── информация о файлах и разрешении ────────────────────────────────────────────
@@ -471,7 +483,7 @@ def convert_one(path, out_dir, fmt, out_name, quality,
                 bg_img.paste(rgba, mask=rgba.split()[3])
                 img = bg_img
 
-            kw = {"quality": quality} if fmt in ("JPEG", "WEBP", "HEIC", "AVIF") else {}
+            kw = {"quality": quality} if fmt in ("JPEG", "WEBP", "HEIC", "AVIF", "JXL") else {}
 
             if fmt == "ICO":
                 if img.mode not in ("RGBA", "RGB"):
@@ -504,7 +516,7 @@ def convert_one(path, out_dir, fmt, out_name, quality,
             save_fmt = "HEIF" if fmt == "HEIC" else fmt
 
             # Режим "целевой размер файла" — см. find_quality_for_target_size
-            if quality_mode == "size" and target_bytes and fmt in ("JPEG", "WEBP", "HEIC", "AVIF"):
+            if quality_mode == "size" and target_bytes and fmt in ("JPEG", "WEBP", "HEIC", "AVIF", "JXL"):
                 quality = find_quality_for_target_size(img, save_fmt, kw, target_bytes)
                 kw["quality"] = quality
 

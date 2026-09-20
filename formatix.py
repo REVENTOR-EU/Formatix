@@ -413,6 +413,8 @@ class App(BaseClass):
         self._files           = []
         self._results         = []
         self._out_dir         = tk.StringVar(value="")
+        # «Удалять оригинал после успешной конвертации» — см. окно настроек
+        self._delete_original = tk.BooleanVar(value=False)
         self._running         = False
         self._stop_requested  = False
         self._compare_win     = None  # ссылка на открытое окно сравнения
@@ -483,6 +485,10 @@ class App(BaseClass):
                     t for t in saved_fn_tokens
                     if isinstance(t, dict) and t.get("type") in ("name", "index", "date", "text")
                 ]
+
+        # Настройка удаления оригиналов восстанавливается всегда — как
+        # check_updates, она не зависит от галочки «Запоминать настройки»
+        self._delete_original.set(bool(self._settings.get("delete_original", False)))
 
         self._loading = False  # восстановление завершено, теперь сохранять можно
 
@@ -602,6 +608,7 @@ class App(BaseClass):
         self._settings["theme"]             = getattr(self, "_theme", "dark")
         self._settings["remember_settings"] = self._remember_settings.get()
         self._settings["check_updates"]     = self._check_updates.get()
+        self._settings["delete_original"]   = self._delete_original.get()
         self._settings["last_update_check"] = self._last_update_check
 
         # На диск пишем всегда — но если remember выключен,
@@ -1921,10 +1928,18 @@ class App(BaseClass):
                 open_path(path)
 
     def _open_out_dir(self):
-        """Открывает папку с результатами."""
+        """Открывает папку с результатами.
+
+        Если папка сохранения не выбрана, каждый файл лежит рядом со своим
+        оригиналом — тогда открываем папку последнего результата.
+        """
         d = self._out_dir.get()
         if d and os.path.isdir(d):
             open_path(d)
+        elif self._results:
+            folder = os.path.dirname(self._results[-1][0])
+            if folder and os.path.isdir(folder):
+                open_path(folder)
 
     # ── запуск конвертации ────────────────────────────────────────────────────
 
@@ -2004,7 +2019,7 @@ class App(BaseClass):
         # Если активен режим "целевой размер файла" — валидируем и переводим в байты
         quality_mode = self._quality_mode.get()
         target_bytes = None
-        if quality_mode == "size" and self._fmt.get() in ("JPEG", "WEBP", "HEIC", "AVIF"):
+        if quality_mode == "size" and self._fmt.get() in ("JPEG", "WEBP", "HEIC", "AVIF", "JXL"):
             try:
                 target_size_num = int(self._target_size_val.get())
                 if target_size_num <= 0:
@@ -2022,24 +2037,14 @@ class App(BaseClass):
         filename_tokens = [dict(t) for t in self._filename_tokens]
 
         out_dir = self._out_dir.get()
-        if not out_dir or not os.path.isdir(out_dir):
-            out_dir = filedialog.askdirectory(title=self.t("save_folder"))
-            if not out_dir:
-                return
-            self._out_dir.set(out_dir)
-            self._dir_lbl.config(fg=FG)
-            self._save_settings()
+        if out_dir and not os.path.isdir(out_dir):
+            # Папка не выбрана (или путь больше не существует): каждый файл
+            # конвертируется «на месте», в папку своего оригинала.
+            out_dir = None
+        delete_original = self._delete_original.get()
 
         fmt_now            = self._fmt.get()
         ext_now            = ".jpg" if fmt_now == "JPEG" else f".{fmt_now.lower()}"
-        if quality_mode == "size" and target_bytes:
-            q_part = f"tgt:{target_bytes}"
-        else:
-            q_part = f"q:{self._qual.get()}"
-        fn_part = f"fn:{filename_preset}:{filename_tokens}"
-        current_config_str = (f"fmt:{fmt_now}|{q_part}|dir:{out_dir}"
-                              f"|mode:{mode_key}|w:{target_w}|h:{target_h}|{fn_part}")
-
         # Проверяем конфликты по «чистому» имени (без суффикса _1, _2 и т.д.)
         # _generate_unique_filename здесь использовать нельзя — она сама
         # уходит от конфликта и диалог никогда не показывается.
@@ -2049,7 +2054,8 @@ class App(BaseClass):
             orig_base  = os.path.splitext(os.path.basename(p))[0]
             base_name  = render_filename_template(orig_base, i, filename_preset, filename_tokens)
             plain_name = f"{base_name}{ext_now}"
-            out_path   = os.path.join(out_dir, plain_name)
+            p_out_dir  = out_dir or os.path.dirname(p)
+            out_path   = os.path.join(p_out_dir, plain_name)
             if plain_name.lower() in seen_basenames:
                 continue
             seen_basenames.add(plain_name.lower())
@@ -2103,7 +2109,8 @@ class App(BaseClass):
                   mode_key, target_w, target_h,
                   self._overwrite_confirmed, batch_id,
                   quality_mode, target_bytes,
-                  filename_preset, filename_tokens),
+                  filename_preset, filename_tokens,
+                  delete_original),
             daemon=True).start()
 
     # ── очередь событий GUI ───────────────────────────────────────────────────
@@ -2181,12 +2188,17 @@ class App(BaseClass):
     def _convert_worker(self, files_snapshot, out_dir, fmt, quality, mode_key,
                         target_w, target_h, allow_overwrite=False, batch_id=0,
                         quality_mode="percent", target_bytes=None,
-                        filename_preset="original", filename_tokens=None):
+                        filename_preset="original", filename_tokens=None,
+                        delete_original=False):
         """Фоновый рабочий поток: конвертирует все файлы параллельно.
 
         batch_id штампуется на каждое сообщение в self._gui_queue — это
         позволяет _listen_queue отличить сообщения текущего запуска от
         сообщений уже отменённого пользователем через «Очистить» запуска.
+
+        out_dir=None означает «рядом с оригиналом»: каждый файл пишется
+        в папку, где лежит его исходник. delete_original=True удаляет
+        исходник после каждой успешной конвертации.
         """
         # fmt, quality, mode_key переданы из GUI-потока как снимок значений —
         # не читаем self._fmt / self._qual / self._resize_mode из фонового потока.
@@ -2202,36 +2214,46 @@ class App(BaseClass):
         # размер" — иначе кэш не заметит смену лимита. Шаблон имени файла
         # тоже входит в ключ: сам результат от него не зависит, но смена
         # шаблона должна приводить к перезаписи под новым именем, а не к
-        # переиспользованию старого закэшированного out_path.
+        # переиспользованию старого закэшированного out_path. dir — плейсхолдер:
+        # реальная папка подставляется пофайлово ({} ниже), чтобы кэш различал
+        # результаты из разных исходных папок при режиме «рядом с оригиналом».
         if quality_mode == "size" and target_bytes:
             q_part = f"tgt:{target_bytes}"
         else:
             q_part = f"q:{quality}"
         fn_part = f"fn:{filename_preset}:{filename_tokens}"
-        current_config_str = (f"fmt:{fmt}|{q_part}|dir:{out_dir}"
-                              f"|mode:{mode_key}|w:{target_w}|h:{target_h}|{fn_part}")
+        config_str_tpl = (f"fmt:{fmt}|{q_part}|dir:{{}}"
+                          f"|mode:{mode_key}|w:{target_w}|h:{target_h}|{fn_part}")
         workers = min(os.cpu_count() or 4, 8)
 
         # Предварительное выделение уникальных имён на основе снимка списка.
         # Индекс (i) считается с 1 в порядке текущего списка — им пользуется
         # токен "Номер" в пользовательском шаблоне и пресет "Имя + номер".
-        allocated_names = {}
-        reserved_names  = set()
+        # Имена резервируются ПО папке назначения: в режиме «рядом с
+        # оригиналом» у каждой исходной папки свой набор имён.
+        allocated_names  = {}
+        reserved_by_dir  = {}
         for i, path in enumerate(files_snapshot, start=1):
-            orig_base = os.path.splitext(os.path.basename(path))[0]
-            base_name = render_filename_template(orig_base, i, filename_preset, filename_tokens)
-            allocated_names[path] = generate_unique_filename(
-                out_dir, base_name, ext, reserved_names,
-                allow_overwrite=allow_overwrite)
+            f_out_dir = out_dir or os.path.dirname(path)
+            base_name = render_filename_template(
+                os.path.splitext(os.path.basename(path))[0], i,
+                filename_preset, filename_tokens)
+            allocated_names[path] = (
+                f_out_dir,
+                generate_unique_filename(
+                    f_out_dir, base_name, ext,
+                    reserved_by_dir.setdefault(f_out_dir, set()),
+                    allow_overwrite=allow_overwrite))
 
         futures          = {}
         results_by_path  = {}
         pool = ThreadPoolExecutor(max_workers=workers)
         try:
             for path in files_snapshot:
-                out_name = allocated_names[path]
-                f = pool.submit(convert_one, path, out_dir, fmt, out_name, quality,
-                                mode_key, target_w, target_h, current_config_str, resize_key,
+                f_out_dir, out_name = allocated_names[path]
+                f = pool.submit(convert_one, path, f_out_dir, fmt, out_name, quality,
+                                mode_key, target_w, target_h,
+                                config_str_tpl.format(f_out_dir), resize_key,
                                 quality_mode, target_bytes,
                                 cache=self._converted_cache, lock=self._data_lock)
                 futures[f] = path
@@ -2265,6 +2287,17 @@ class App(BaseClass):
             if path not in results_by_path:
                 continue  # файл не был обработан — пропускаем
             res = results_by_path[path]
+            # Удаляем оригинал только после действительно успешной конвертации.
+            # Если результат записан поверх исходника (та же папка, имя и
+            # расширение + разрешённая замена), удалять нельзя — это уже
+            # готовый конвертированный файл. Ошибка удаления не считается
+            # ошибкой конвертации: файл результата уже на диске.
+            if res["success"] and delete_original:
+                try:
+                    if os.path.abspath(path) != os.path.abspath(res["out_path"]):
+                        os.remove(path)
+                except OSError:
+                    pass
             if res["success"]:
                 ok_cnt += 1
             else:

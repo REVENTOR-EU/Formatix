@@ -52,12 +52,12 @@ Formatix Image Converter is a powerful desktop application designed to batch con
 ## Key Features
 
 * **Batch Processing** — convert, resize, and optimize hundreds of images in a single operation
-* **8 Output Formats** — export to AVIF, WEBP, JPEG, HEIC/HEIF, PNG, BMP, TIFF, and ICO
+* **9 Output Formats** — export to AVIF, WEBP, JPEG, HEIC/HEIF, JXL, PNG, BMP, TIFF, and ICO
 * **Multi-threaded Conversion** — converts multiple images simultaneously for fast batch operations
 * **Advanced Image Resizer** — 5 resize modes: proportional scaling, smart crop, and custom dimensions
 * **Color Profile Management** — ICC-based color space conversion via Pillow ImageCms for high color accuracy
 * **Multi-size ICO Generation** — automatically creates Windows icon packs
-* **Adjustable Quality Settings** — fine-tune compression levels for JPEG, WEBP, AVIF, and HEIC, or set a target output file size (KB/MB) and let automatically find the best quality to fit within it
+* **Adjustable Quality Settings** — fine-tune compression levels for JPEG, WEBP, AVIF, HEIC, and JXL, or set a target output file size (KB/MB) and let automatically find the best quality to fit within it
 * **Custom File Renaming** — choose from built-in presets or use the custom template builder in Settings
 * **Drag & Drop** — instantly add folders or individual files
 * **Smart Conversion Cache** — automatically skips files already converted with identical settings to save time
@@ -72,7 +72,7 @@ Formatix Image Converter is a powerful desktop application designed to batch con
 
 * **OS:** Windows (if using the pre-compiled `.exe` standalone app)
 * **Python:** 3.10+ *(only required if running from source)*
-* **Dependencies:** `Pillow`, `pillow-heif`, `tkinterdnd2`, `resvg-py` *(only required if running from source)*
+* **Dependencies:** `Pillow`, `pillow-heif`, `pillow-jxl-plugin`, `tkinterdnd2`, `resvg-py` *(only required if running from source)*
 
 ---
 
@@ -86,7 +86,7 @@ To run the script from the source code, you need **Python 3.10+** and the necess
 
 1. Install the required dependencies:
 ```bash
-pip install Pillow pillow-heif tkinterdnd2 resvg-py
+pip install Pillow pillow-heif pillow-jxl-plugin tkinterdnd2 resvg-py
 ```
 2. Make sure all project files are in the same folder:
 
@@ -119,6 +119,7 @@ python formatix.py
 | Format | Compression Type | Notes for Users |
 | :--- | :--- | :--- |
 | **AVIF** | Lossy (Adjustable) | Next-generation format; offers superior compression with high visual quality. |
+| **JXL** | Lossy (Adjustable) | JPEG XL — next-generation format with excellent compression; the successor to JPEG. |
 | **WEBP** | Lossy (Adjustable) | Best size-to-quality ratio for modern web development. |
 | **JPEG** | Lossy (Adjustable) | Standard universal format; RGBA transparency is auto-converted to RGB. |
 | **HEIC** | Lossy (Adjustable) | High Efficiency Image Format, commonly used by Apple iOS devices. |
@@ -155,7 +156,7 @@ You can enable or disable settings persistence in the Settings window. When disa
 > No. Everything is processed **fully offline** on your local machine. Your files are never uploaded, shared, or sent anywhere.
 
 **Q: What does the quality slider affect?**
-> The quality setting applies to lossy formats: **JPEG**, **WEBP**, **AVIF**, and **HEIC**. Lossless formats (PNG, TIFF, BMP, ICO) ignore this setting and always output at full quality.
+> The quality setting applies to lossy formats: **JPEG**, **WEBP**, **AVIF**, **HEIC**, and **JXL**. Lossless formats (PNG, TIFF, BMP, ICO) ignore this setting and always output at full quality.
 
 **Q: How do I compare the original and converted image?**
 > After conversion, click the **Compare** button — it opens a side-by-side view so you can evaluate quality and file size.

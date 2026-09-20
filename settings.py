@@ -225,6 +225,38 @@ def open_settings_window(app, colors):
     for w in (check_row, check_lbl, check_canvas):
         w.bind("<Button-1>", _toggle_check_updates)
 
+    # ── Удалять оригинал после успешной конвертации ────────────────────────
+    delorig_row = tk.Frame(win, bg=BG, cursor="hand2")
+    delorig_row.pack(padx=24, fill="x", pady=(6, 0))
+
+    delorig_lbl = tk.Label(delorig_row, text=app.t("settings_delete_original"),
+                           font=("Segoe UI", 10), bg=BG, fg=FG2, cursor="hand2")
+    delorig_lbl.pack(side="left")
+
+    delorig_canvas = tk.Canvas(delorig_row, width=BOX, height=BOX,
+                               bg=BG, bd=0, highlightthickness=0, cursor="hand2")
+    delorig_canvas.pack(side="left", padx=(8, 0))
+
+    def _draw_delorig_box():
+        delorig_canvas.delete("all")
+        checked = app._delete_original.get()
+        delorig_canvas.create_rectangle(1, 1, BOX-1, BOX-1,
+                                        outline=ACCENT if checked else FG3,
+                                        fill=ACCENT if checked else BG, width=1)
+        if checked:
+            delorig_canvas.create_line(3, 8, 6, 12, fill="#fff", width=2)
+            delorig_canvas.create_line(6, 12, 13, 4, fill="#fff", width=2)
+
+    def _toggle_delorig(e=None):
+        app._delete_original.set(not app._delete_original.get())
+        _draw_delorig_box()
+        app._save_settings()
+
+    _draw_delorig_box()
+
+    for w in (delorig_row, delorig_lbl, delorig_canvas):
+        w.bind("<Button-1>", _toggle_delorig)
+
     # Ручная проверка — работает независимо от чекбокса выше: отключённая
     # автопроверка не должна лишать возможности проверить вручную.
     check_now_lbl = tk.Label(win, text=app.t("update_check_now"),
@@ -284,6 +316,7 @@ def open_settings_window(app, colors):
                 lang_lbl.config(text=app.t("settings_lang"))
                 remember_lbl.config(text=app.t("settings_remember"))
                 check_lbl.config(text=app.t("settings_check_updates"))
+                delorig_lbl.config(text=app.t("settings_delete_original"))
                 if _found_update["tag"]:
                     check_now_lbl.config(text=app.t("update_ver_label").format(
                         old=app.VERSION, new=_found_update["tag"]))
