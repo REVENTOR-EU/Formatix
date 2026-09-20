@@ -165,7 +165,7 @@ class Backend(QObject):
         self._fmt = s.get("fmt", "AVIF")
         if self._fmt not in FORMATS:
             self._fmt = FORMATS[0]
-        self._quality = int(s.get("quality", 85))
+        self._quality = int(s.get("quality", 80))  # 80 — разумный дефолт для первого запуска
         self._quality_mode = s.get("quality_mode", "percent")
         self._target_size_val = str(s.get("target_size_val", 500))
         self._target_size_unit = s.get("target_size_unit", "KB")
@@ -269,8 +269,26 @@ class Backend(QObject):
     @Slot("QVariantList")
     def addFiles(self, urls):
         """Принимает пути из QML: элементы могут быть QUrl (FileDialog,
-        DropArea) или строками (file:// и обычные пути)."""
+        DropArea) или строками. Папки добавляются рекурсивно — все
+        изображения внутри, с сохранением структуры списка."""
         added = False
+        known = {f["path"] for f in self._files}
+
+        def add_one(p):
+            nonlocal added
+            p = os.path.normpath(p.strip())
+            if not p or p in known:
+                return
+            if os.path.splitext(p)[1].lower() in IMG_EXTS and os.path.isfile(p):
+                known.add(p)
+                self._files.append({
+                    "path": p,
+                    "name": os.path.basename(p),
+                    "res": get_image_res_str(p),
+                    "size": os.path.getsize(p),
+                })
+                added = True
+
         for u in urls:
             if isinstance(u, QUrl):
                 p = u.toLocalFile()
@@ -279,16 +297,12 @@ class Backend(QObject):
             else:
                 p = str(u)
             p = os.path.normpath(p.strip())
-            if not p or p in {f["path"] for f in self._files}:
-                continue
-            if os.path.splitext(p)[1].lower() in IMG_EXTS and os.path.isfile(p):
-                self._files.append({
-                    "path": p,
-                    "name": os.path.basename(p),
-                    "res": get_image_res_str(p),
-                    "size": os.path.getsize(p),
-                })
-                added = True
+            if p and os.path.isdir(p):
+                for dirpath, _dirs, files in os.walk(p):
+                    for fn in files:
+                        add_one(os.path.join(dirpath, fn))
+            else:
+                add_one(p)
         if added:
             self._refresh_files_model()
 
