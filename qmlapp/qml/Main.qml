@@ -461,24 +461,38 @@ ApplicationWindow {
                                 }
                                 onActivated: function(i) { B.resizeModeKey = model[i][1] }
                             }
+                            // Пропорциональное изменение: одно из полей
+                            // вычисляется автоматически и блокируется
                             Rectangle {
                                 visible: B.resizeModeKey !== "no_change"
+                                property bool editable: B.resizeModeKey === "custom"
+                                                        || B.resizeModeKey === "prop_width"
+                                                        || B.resizeModeKey === "smart_crop"
                                 implicitWidth: 56; implicitHeight: 30; radius: 8
-                                color: B.card; border.color: B.border; border.width: 1
+                                color: editable ? B.card : B.bg3
+                                border.color: editable ? B.border : B.bg3; border.width: 1
                                 TextInput {
                                     anchors.centerIn: parent; text: B.wVal === "" ? "—" : B.wVal
-                                    color: B.fg; font.pixelSize: 13; horizontalAlignment: TextInput.AlignHCenter
+                                    color: parent.editable ? B.fg : B.fg3
+                                    font.pixelSize: 13; horizontalAlignment: TextInput.AlignHCenter
+                                    enabled: parent.editable
                                     onEditingFinished: { if (text !== "—") B.wVal = text; text = B.wVal === "" ? "—" : B.wVal }
                                 }
                             }
                             Text { text: "×"; color: B.fg3; visible: B.resizeModeKey !== "no_change" }
                             Rectangle {
                                 visible: B.resizeModeKey !== "no_change"
+                                property bool editable: B.resizeModeKey === "custom"
+                                                        || B.resizeModeKey === "prop_height"
+                                                        || B.resizeModeKey === "smart_crop"
                                 implicitWidth: 56; implicitHeight: 30; radius: 8
-                                color: B.card; border.color: B.border; border.width: 1
+                                color: editable ? B.card : B.bg3
+                                border.color: editable ? B.border : B.bg3; border.width: 1
                                 TextInput {
                                     anchors.centerIn: parent; text: B.hVal === "" ? "—" : B.hVal
-                                    color: B.fg; font.pixelSize: 13; horizontalAlignment: TextInput.AlignHCenter
+                                    color: parent.editable ? B.fg : B.fg3
+                                    font.pixelSize: 13; horizontalAlignment: TextInput.AlignHCenter
+                                    enabled: parent.editable
                                     onEditingFinished: { if (text !== "—") B.hVal = text; text = B.hVal === "" ? "—" : B.hVal }
                                 }
                             }
