@@ -210,10 +210,13 @@ ApplicationWindow {
                 Item { Layout.fillWidth: true }
                 AppButton { label: tt("settings_title"); onActivated: { settingsSheet.openSheet() } }
                 Image {
+                    Layout.alignment: Qt.AlignVCenter
                     source: B.reventorBanner
                     fillMode: Image.PreserveAspectFit
                     smooth: true; mipmap: true
-                    height: 18; width: 120
+                    // gleiche Höhe wie der Settings-Button (32 px),
+                    // Breite folgt dem Banner-Seitenverhältnis (431:50)
+                    height: 32; width: 276
                     MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: B.openReventor() }
                 }
             }

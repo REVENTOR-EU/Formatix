@@ -46,7 +46,7 @@ from converter import (
 from localization import LANGUAGES, STRINGS, detect_system_lang, APP_NAME
 from update import check_for_update
 
-VERSION = "2.0.0"
+VERSION = "1.0.0"
 SETTINGS_FILE = os.path.join(os.path.expanduser("~"), ".formatix_image_converter_settings.json")
 APP_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
