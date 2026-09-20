@@ -262,11 +262,18 @@ class Backend(QObject):
 
     @Slot("QVariantList")
     def addFiles(self, urls):
+        """Принимает пути из QML: элементы могут быть QUrl (FileDialog,
+        DropArea) или строками (file:// и обычные пути)."""
         added = False
         for u in urls:
-            p = QUrl(u).toLocalFile() if isinstance(u, str) and "://" in str(u) else str(u)
-            p = p.strip()
-            if not p or p in self._files:
+            if isinstance(u, QUrl):
+                p = u.toLocalFile()
+            elif isinstance(u, str) and "://" in u:
+                p = QUrl(u).toLocalFile()
+            else:
+                p = str(u)
+            p = os.path.normpath(p.strip())
+            if not p or p in {f["path"] for f in self._files}:
                 continue
             if os.path.splitext(p)[1].lower() in IMG_EXTS and os.path.isfile(p):
                 self._files.append({
