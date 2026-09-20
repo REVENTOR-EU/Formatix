@@ -348,8 +348,12 @@ def find_quality_for_target_size(img, save_fmt, base_kw, target_bytes):
 def convert_one(path, out_dir, fmt, out_name, quality,
                 mode, target_w, target_h, current_config_str, resize_key=None,
                 quality_mode="percent", target_bytes=None,
-                cache=None, lock=None):
+                cache=None, lock=None, skip_larger=True):
     """Конвертирует один файл. Вызывается из пула потоков.
+
+    Кодирование выполняется полностью в памяти; на диск результат
+    записывается один раз и только если он меньше оригинала (см.
+    skip_larger) — незачем гонять диск впустую.
 
     cache/lock - необязательные общий словарь и блокировка, которыми
     владеет вызывающий код (обычно главное окно приложения). Если cache
@@ -378,6 +382,7 @@ def convert_one(path, out_dir, fmt, out_name, quality,
             }
 
     success  = False
+    skipped  = False
     f_size   = 0
     res_str  = "??x??"
     size_str = "0 KB"
@@ -521,7 +526,6 @@ def convert_one(path, out_dir, fmt, out_name, quality,
                 srgb_profile = ImageCms.createProfile("sRGB")
                 kw["icc_profile"] = ImageCms.ImageCmsProfile(srgb_profile).tobytes()
 
-            tmp_path = out_path + ".tmp"
             save_fmt = "HEIF" if fmt == "HEIC" else fmt
 
             # Режим "целевой размер файла" — см. find_quality_for_target_size
@@ -529,23 +533,19 @@ def convert_one(path, out_dir, fmt, out_name, quality,
                 quality = find_quality_for_target_size(img, save_fmt, kw, target_bytes)
                 kw["quality"] = quality
 
+            # Кодируем целиком в память: размер известен до записи на диск
+            out_buf = io.BytesIO()
             try:
-                img.save(tmp_path, save_fmt, **kw)
-                if os.path.exists(out_path):
-                    os.remove(out_path)
-                os.replace(tmp_path, out_path)
+                img.save(out_buf, save_fmt, **kw)
             except Exception:
-                # Удаляем незавершённый временный файл при любой ошибке записи
-                try:
-                    if os.path.exists(tmp_path):
-                        os.remove(tmp_path)
-                except OSError:
-                    pass
                 raise
+            out_bytes = out_buf.getvalue()
+            out_buf.close()
+
             # Для ICO показываем реальный максимальный размер внутри файла
             if fmt == "ICO":
                 try:
-                    with Image.open(out_path) as ico_check:
+                    with Image.open(io.BytesIO(out_bytes)) as ico_check:
                         max_s = max(ico_check.size)
                         res_str = f"{max_s}x{max_s} (ICO)"
                 except Exception:
@@ -553,16 +553,43 @@ def convert_one(path, out_dir, fmt, out_name, quality,
             else:
                 res_str = f"{img.size[0]}x{img.size[1]}"
 
-        success  = True
-        f_size   = os.path.getsize(out_path)
-        size_str = format_size(f_size)
+            # Сжатие не должно увеличивать файл: не пишем результат, если он
+            # не меньше оригинала (skip_larger), иначе — атомарная запись.
+            if skip_larger and len(out_bytes) >= os.path.getsize(path):
+                skipped = True
+            else:
+                skipped = False
+                tmp_path = out_path + ".tmp"
+                try:
+                    with open(tmp_path, "wb") as fp:
+                        fp.write(out_bytes)
+                    if os.path.exists(out_path):
+                        os.remove(out_path)
+                    os.replace(tmp_path, out_path)
+                except Exception:
+                    try:
+                        if os.path.exists(tmp_path):
+                            os.remove(tmp_path)
+                    except OSError:
+                        pass
+                    raise
+
+        if skipped:
+            success = True
+            skipped = True
+            f_size = 0
+            size_str = ""
+        else:
+            success = True
+            f_size   = os.path.getsize(out_path)
+            size_str = format_size(f_size)
     except Exception as ex:
         # Сохраняем текст ошибки отдельно, out_path остаётся валидным путём
         error_msg = str(ex)
 
     # Запись в кэш только при успехе - неудачи не кэшируем,
     # чтобы следующий запуск пересчитал файл заново.
-    if success and cache is not None:
+    if success and not skipped and cache is not None:
         with lock_ctx:
             # Ограничение 500 записей, вытеснение по порядку вставки (FIFO,
             # не LRU — при попадании в кэш запись не переставляется в конец)
@@ -576,6 +603,7 @@ def convert_one(path, out_dir, fmt, out_name, quality,
         "out_path":  out_path,       # всегда путь, никогда не строка ошибки
         "error_msg": error_msg,      # ошибка хранится отдельно
         "success":   success,
+        "skipped":   skipped,
         "cached":    False,
         "f_size":    f_size,
         "res_str":   res_str,

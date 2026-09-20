@@ -128,7 +128,10 @@ class SimpleModel(QAbstractListModel):
     def data(self, index, role):
         if not index.isValid() or not (0 <= index.row() < len(self._rows)):
             return None
-        return self._rows[index.row()].get(self._roles.get(role), None)
+        role_name = self._roles.get(role)
+        if role_name is None:
+            return None
+        return self._rows[index.row()].get(bytes(role_name).decode(), None)
 
     def reset(self, rows):
         self.beginResetModel()
@@ -667,16 +670,9 @@ class Backend(QObject):
                     res = fu.result()
                     f = futures[fu]
                     done += 1
-                    skipped = False
-                    if res["success"]:
-                        # Сжатие не должно увеличивать файл: если результат
-                        # не меньше оригинала — удаляем его и помечаем пропуск
-                        try:
-                            if res["f_size"] >= os.path.getsize(f["path"]):
-                                os.remove(res["out_path"])
-                                skipped = True
-                        except OSError:
-                            skipped = False
+                    # skip_larger обрабатывается внутри convert_one:
+                    # результат больше оригинала на диск вообще не пишется
+                    skipped = bool(res.get("skipped"))
                     if skipped:
                         skipped_cnt += 1
                     elif res["success"]:
