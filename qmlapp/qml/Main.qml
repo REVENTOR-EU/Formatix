@@ -472,11 +472,11 @@ ApplicationWindow {
                                 color: editable ? B.card : B.bg3
                                 border.color: editable ? B.border : B.bg3; border.width: 1
                                 TextInput {
-                                    anchors.centerIn: parent; text: B.wVal === "" ? "—" : B.wVal
+                                    anchors.centerIn: parent; text: B.wVal
                                     color: parent.editable ? B.fg : B.fg3
                                     font.pixelSize: 13; horizontalAlignment: TextInput.AlignHCenter
                                     enabled: parent.editable
-                                    onEditingFinished: { if (text !== "—") B.wVal = text; text = B.wVal === "" ? "—" : B.wVal }
+                                    onEditingFinished: B.wVal = text.trim()
                                 }
                             }
                             Text { text: "×"; color: B.fg3; visible: B.resizeModeKey !== "no_change" }
@@ -489,11 +489,11 @@ ApplicationWindow {
                                 color: editable ? B.card : B.bg3
                                 border.color: editable ? B.border : B.bg3; border.width: 1
                                 TextInput {
-                                    anchors.centerIn: parent; text: B.hVal === "" ? "—" : B.hVal
+                                    anchors.centerIn: parent; text: B.hVal
                                     color: parent.editable ? B.fg : B.fg3
                                     font.pixelSize: 13; horizontalAlignment: TextInput.AlignHCenter
                                     enabled: parent.editable
-                                    onEditingFinished: { if (text !== "—") B.hVal = text; text = B.hVal === "" ? "—" : B.hVal }
+                                    onEditingFinished: B.hVal = text.trim()
                                 }
                             }
                         }
