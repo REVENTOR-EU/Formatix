@@ -204,9 +204,12 @@ class Backend(QObject):
     def langName(self):
         return LANGUAGES[self._lang]
 
-    @Slot(result=int)
-    def langRev(self):
+    langRevChanged = Signal()
+    def _get_langRev(self):
         return self._lang_rev
+    # Property (а не Slot): QML-биндинги отслеживают зависимости только
+    # через Properties с notify — тогда смена языка обновляет все тексты
+    langRev = Property(int, _get_langRev, notify=langRevChanged)
 
     @Slot(str)
     def setLangByName(self, name):
@@ -481,6 +484,7 @@ class Backend(QObject):
             self._settings["filename_preset"] = v
             self._save()
             self.fnPresetChanged.emit()
+            self.previewChanged.emit()
     fnPreset = Property(str, _get_fnPreset, _set_fnPreset, notify=fnPresetChanged)
 
 
@@ -492,6 +496,7 @@ class Backend(QObject):
         self._settings["filename_tokens"] = list(self._tokens)
         self._save()
         self.tokensChanged.emit()
+        self.previewChanged.emit()
     tokens = Property("QVariantList", _get_tokens, _set_tokens, notify=tokensChanged)
 
 
@@ -515,9 +520,10 @@ class Backend(QObject):
             del self._tokens[idx]
             self.tokens = self._tokens
 
-    @Slot(result=str)
-    def namePreview(self):
+    previewChanged = Signal()
+    def _get_namePreview(self):
         return render_filename_template("photo", 1, self._fn_preset, self._tokens) + ".jpg"
+    namePreview = Property(str, _get_namePreview, notify=previewChanged)
 
     # ── статус и прогресс ─────────────────────────────────────────────────────
     statusChanged = Signal()

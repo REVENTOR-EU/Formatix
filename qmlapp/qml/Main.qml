@@ -447,7 +447,7 @@ ApplicationWindow {
                             AppCombo {
                                 id: resCombo
                                 implicitWidth: 210
-                                model: B.resizeModes()
+                                model: { B.langRev; return B.resizeModes() }
                                 displayText: model !== undefined && currentIndex >= 0 ? model[currentIndex][0] : ""
                                 delegate: ItemDelegate {
                                     width: resCombo.width
@@ -606,7 +606,7 @@ ApplicationWindow {
             }
             RowLayout { visible: B.fnPreset === "custom"; Layout.fillWidth: true; spacing: 8
                 Text { text: tt("fn_preview_lbl"); color: B.fg3; font.pixelSize: 11 }
-                Text { text: B.namePreview(); color: B.fg; font.pixelSize: 12; font.family: "Inter" }
+                Text { text: B.namePreview; color: B.fg; font.pixelSize: 12; font.family: "Inter" }
             }
 
             Hairline { Layout.fillWidth: true }
