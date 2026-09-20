@@ -276,7 +276,10 @@ def render_filename_template(base_name, index, preset, tokens):
                     parts.append(datetime.date.today().isoformat())
                 elif kind == "text":
                     parts.append(tok.get("value", ""))
-            result = "".join(parts).strip()
+            # Элементы шаблона склеиваются с подчёркиванием-разделителем.
+            # Подчёркивания по краям элементов убираем, чтобы не было
+            # задвоений: photo + "_final" + 001 -> photo_final_001
+            result = "_".join(p.strip("_") for p in parts if p.strip("_")).strip()
     else:
         result = base_name
 
