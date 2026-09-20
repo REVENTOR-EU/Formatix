@@ -485,6 +485,15 @@ def convert_one(path, out_dir, fmt, out_name, quality,
 
             kw = {"quality": quality} if fmt in ("JPEG", "WEBP", "HEIC", "AVIF", "JXL") else {}
 
+            if fmt == "JXL":
+                # pillow-jxl-plugin по умолчанию перекодирует JPEG-исходники
+                # без потерь (lossless JPEG reconstruction) и полностью
+                # игнорирует quality — отключаем, чтобы слайдер работал.
+                kw["lossless_jpeg"] = False
+                # quality=100 в плагине падает с RuntimeError (истинный
+                # lossless); 99 даёт визуально безпотерьное качество.
+                kw["quality"] = min(kw["quality"], 99)
+
             if fmt == "ICO":
                 if img.mode not in ("RGBA", "RGB"):
                     img = img.convert("RGBA")
