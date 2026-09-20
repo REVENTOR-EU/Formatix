@@ -35,6 +35,7 @@ from PIL import Image, ImageTk
 from compare import Compare, FancySlider
 
 # Локализация (языки, строки переводов, автоопределение языка системы)
+import appearance
 from localization import LANGUAGES, STRINGS, detect_system_lang, APP_NAME
 
 # Окна "Настройки" и "Донат" — в settings.py
@@ -125,20 +126,28 @@ def detect_system_theme():
 
 
 # ── палитра ───────────────────────────────────────────────────────────────────
-# Тёмная тема — оригинальные цвета, без изменений
+# Обе темы построены на системных цветах Apple (Human Interface Guidelines):
+# нейтральные серые слои, синий системный акцент, тонкие сепараторы.
 THEME_DARK = {
-    "BG": "#0f0f1a", "BG2": "#181825", "BG3": "#1e1e2e", "CARD": "#232336",
-    "ACCENT": "#c678dd", "ACCENT2": "#ff6b9d", "HEART_RED": "#ff3366",
-    "GREEN": "#a8ff78", "FG": "#cdd6f4", "FG2": "#6c7086", "FG3": "#45475a",
-    "BORDER": "#313244", "CARD_TINT": "#1c1530",
+    # Слои: окно → панели → углубления → карточки (elevated surfaces)
+    "BG":   "#1a1a1c", "BG2": "#232326", "BG3": "#2c2c2e", "CARD": "#323234",
+    # Системный синий (dark) и его hover-оттенок
+    "ACCENT": "#0a84ff", "ACCENT2": "#409cff", "HEART_RED": "#ff453a",
+    "GREEN": "#30d158",
+    # Текст: primary / secondary / tertiary (иерархия Apple)
+    "FG": "#f5f5f7", "FG2": "#98989e", "FG3": "#636366",
+    # Сепаратор (separator dark) и акцентно-тонированная карточка
+    "BORDER": "#38383a", "CARD_TINT": "#1a2c44",
 }
 
-# Светлая тема — тот же оттенок акцента (фиолетово-розовый), но на светлом фоне
+# Светлая тема — та же иерархия слоёв на фирменном светло-сером фоне Apple
 THEME_LIGHT = {
-    "BG": "#fafafc", "BG2": "#f0f0f5", "BG3": "#e6e6ee", "CARD": "#ffffff",
-    "ACCENT": "#9c4dcc", "ACCENT2": "#e0457f", "HEART_RED": "#e0304f",
-    "GREEN": "#4a9a1f", "FG": "#1e1e2e", "FG2": "#5c5c70", "FG3": "#b8b8c8",
-    "BORDER": "#d4d4dc", "CARD_TINT": "#f3e9fb",
+    "BG":   "#f5f5f7", "BG2": "#ececf0", "BG3": "#e3e3e8", "CARD": "#ffffff",
+    # Системный синий (light) и hover-оттенок
+    "ACCENT": "#0071e3", "ACCENT2": "#3395ff", "HEART_RED": "#ff3b30",
+    "GREEN": "#248a3d",
+    "FG": "#1d1d1f", "FG2": "#6e6e73", "FG3": "#aeaeb2",
+    "BORDER": "#d2d2d7", "CARD_TINT": "#e9f2fd",
 }
 
 THEMES = {"dark": THEME_DARK, "light": THEME_LIGHT}
@@ -267,7 +276,7 @@ class SegmentedToggle(tk.Frame):
     """
 
     def __init__(self, parent, options, variable, command=None,
-                 width=76, height=20, font=("Segoe UI", 8, "bold"), radius=0):
+                 width=76, height=20, font=(appearance.FONT_UI, 8, "bold"), radius=0):
         super().__init__(parent, bg=BG2)
         self._segments = list(options)   # [(value, label), (value, label)]
         self._variable = variable
@@ -706,11 +715,11 @@ class App(BaseClass):
         s.configure("Treeview",
                     background=CARD, fieldbackground=CARD, foreground=FG,
                     rowheight=24, bd=0, borderwidth=0, relief="flat",
-                    highlightthickness=0, font=("Segoe UI", 10))
+                    highlightthickness=0, font=(appearance.FONT_UI, 10))
         s.layout("Treeview", [("Treeview.treearea", {"sticky": "nswe"})])
         s.configure("Treeview.Heading",
                     background=BG3, foreground=FG, bordercolor=BORDER,
-                    font=("Segoe UI", 10, "bold"), relief="flat")
+                    font=(appearance.FONT_UI, 10, "bold"), relief="flat")
         s.map("Treeview.Heading", background=[("active", BG2)], foreground=[("active", ACCENT)])
         s.map("Treeview", background=[("selected", ACCENT)], foreground=[("selected", "#fff")])
 
@@ -729,9 +738,9 @@ class App(BaseClass):
 
         lf = tk.Frame(hdr, bg=BG2)
         lf.pack(side="left", padx=20, fill="y")
-        tk.Label(lf, text="⬡", font=("Segoe UI", 20), bg=BG2, fg=ACCENT).pack(side="left", anchor="center")
-        tk.Label(lf, text=f" {APP_NAME}", font=("Segoe UI", 14, "bold"), bg=BG2, fg=FG).pack(side="left", anchor="center")
-        _ver_lbl = tk.Label(lf, text=f"  v{VERSION}", font=("Segoe UI", 10),
+        tk.Label(lf, text="⬡", font=(appearance.FONT_UI, 20), bg=BG2, fg=ACCENT).pack(side="left", anchor="center")
+        tk.Label(lf, text=f" {APP_NAME}", font=(appearance.FONT_UI, 14, "bold"), bg=BG2, fg=FG).pack(side="left", anchor="center")
+        _ver_lbl = tk.Label(lf, text=f"  v{VERSION}", font=(appearance.FONT_UI, 10),
                              bg=BG2, fg=FG2, cursor="hand2")
         _ver_lbl.pack(side="left", anchor="center")
         _ver_lbl.bind("<Button-1>", lambda e: webbrowser.open(
@@ -744,7 +753,7 @@ class App(BaseClass):
         self._heart_container.pack(side="right", padx=(0, 20))
         self._heart_container.pack_propagate(False)
 
-        self._hbtn = tk.Label(self._heart_container, text="♥", font=("Segoe UI", 16),
+        self._hbtn = tk.Label(self._heart_container, text="♥", font=(appearance.FONT_UI, 16),
                               bg=BG2, fg=FG3, cursor="hand2")
         self._hbtn.place(relx=0.5, rely=0.5, anchor="center")
         self._hbtn.bind("<Enter>",    lambda e: self._on_heart_hover(True))
@@ -752,7 +761,7 @@ class App(BaseClass):
         self._hbtn.bind("<Button-1>", lambda e: self._donate())
 
         self._settings_btn = tk.Label(hdr, text=self.t("settings_title"),
-                                      font=("Segoe UI", 10, "bold"), bg=BG2, fg=FG2, cursor="hand2")
+                                      font=(appearance.FONT_UI, 10, "bold"), bg=BG2, fg=FG2, cursor="hand2")
         self._settings_btn.pack(side="right", padx=(0, 8), anchor="center")
         self._settings_btn.bind("<Button-1>", lambda e: self._open_settings())
         self._settings_btn.bind("<Enter>", lambda e: self._settings_btn.config(fg=ACCENT))
@@ -774,7 +783,7 @@ class App(BaseClass):
         self._compare_btn = self._btn(br, self.t("compare_btn"), self._open_compare)
         self._compare_btn.pack(side="left", padx=(6, 0))
 
-        self._clbl = tk.Label(br, text="", font=("Segoe UI", 10), bg=BG, fg=FG2)
+        self._clbl = tk.Label(br, text="", font=(appearance.FONT_UI, 10), bg=BG, fg=FG2)
         self._clbl.pack(side="left", padx=10)
 
         paned = tk.Frame(main, bg=BG)
@@ -800,11 +809,11 @@ class App(BaseClass):
             self._dz_hint = tk.Frame(self._tv_src._inner_frame, bg=CARD, cursor="hand2")
             self._dz_hint.place(relx=0.5, rely=0.45, anchor="center")
 
-            self._dz_ico = tk.Label(self._dz_hint, text="⬇", font=("Segoe UI", 22),
+            self._dz_ico = tk.Label(self._dz_hint, text="⬇", font=(appearance.FONT_UI, 22),
                                     bg=CARD, fg=FG3, cursor="hand2")
             self._dz_ico.pack()
             self._dz_lbl = tk.Label(self._dz_hint, text=self.t("drop_hint"),
-                                    font=("Segoe UI", 10), bg=CARD, fg=FG2,
+                                    font=(appearance.FONT_UI, 10), bg=CARD, fg=FG2,
                                     justify="center", cursor="hand2")
             self._dz_lbl.pack(pady=(4, 0))
 
@@ -837,14 +846,14 @@ class App(BaseClass):
         folder_row = tk.Frame(bot, bg=BG2)
         folder_row.pack(fill="x", pady=(0, 10))
         self._save_folder_lbl = tk.Label(folder_row, text=self.t("save_folder"),
-                                         font=("Segoe UI", 10, "bold"), bg=BG2, fg=FG2)
+                                         font=(appearance.FONT_UI, 10, "bold"), bg=BG2, fg=FG2)
         self._save_folder_lbl.pack(side="left")
 
         dir_frame = tk.Frame(folder_row, bg=CARD,
                              highlightthickness=1, highlightbackground=BORDER, highlightcolor=BORDER)
         dir_frame.pack(side="left", fill="x", expand=True, padx=(8, 6))
         self._dir_lbl = tk.Label(dir_frame, textvariable=self._out_dir,
-                                 font=("Segoe UI", 10), bg=CARD, fg=FG2, anchor="w", padx=8, pady=4)
+                                 font=(appearance.FONT_UI, 10), bg=CARD, fg=FG2, anchor="w", padx=8, pady=4)
         self._dir_lbl.pack(fill="x")
         self._out_dir.set(self.t("folder_placeholder"))
 
@@ -873,7 +882,7 @@ class App(BaseClass):
             blk = tk.Frame(parent, bg=BG2)
             blk.pack(side="left", anchor="n", padx=(0, 16))
             lbl = tk.Label(blk, text=label_text,
-                           font=("Segoe UI", 10, "bold"), bg=BG2, fg=FG2)
+                           font=(appearance.FONT_UI, 10, "bold"), bg=BG2, fg=FG2)
             lbl.pack(anchor="w")
             wf = tk.Frame(blk, bg=BG2)
             wf.pack(anchor="w", pady=(2, 0))
@@ -883,7 +892,7 @@ class App(BaseClass):
         _fmt_blk, self._format_lbl, _fmt_wf = _ctrl_block(ctrl_row, self.t("format_lbl"))
         self._fmt = tk.StringVar(value="AVIF")
         _fmt_cb = ttk.Combobox(_fmt_wf, textvariable=self._fmt, values=FORMATS,
-                               width=7, state="readonly", font=("Segoe UI", 10))
+                               width=7, state="readonly", font=(appearance.FONT_UI, 10))
         _fmt_cb.pack()
         _fmt_cb.bind("<<ComboboxSelected>>", self._on_format_changed)
 
@@ -894,7 +903,7 @@ class App(BaseClass):
         _qual_lbl_row = tk.Frame(_qual_blk, bg=BG2)
         _qual_lbl_row.pack(anchor="w")
         self._quality_lbl = tk.Label(_qual_lbl_row, text=self.t("quality_lbl"),
-                                     font=("Segoe UI", 10, "bold"), bg=BG2, fg=FG2)
+                                     font=(appearance.FONT_UI, 10, "bold"), bg=BG2, fg=FG2)
         self._quality_lbl.pack(side="left")
 
         # Переключатель режима — прямоугольная кнопка-тумблер (SegmentedToggle)
@@ -905,7 +914,8 @@ class App(BaseClass):
             options=[("percent", self.t("qmode_percent")), ("size", self.t("qmode_size"))],
             variable=self._quality_mode,
             command=self._set_quality_mode,
-            width=94)   # было 76 (по умолчанию) — не хватало места под "Размер"
+            width=94, height=22, radius=10,
+            font=(appearance.FONT_UI, 9, "bold"))  # было 76 — не хватало места под "Размер"
         self._qmode_toggle.pack(side="left", padx=(8, 0))
 
         _qual_wf = tk.Frame(_qual_blk, bg=BG2)
@@ -924,7 +934,7 @@ class App(BaseClass):
         self._target_size_val.trace_add("write", self._on_target_size_write)
         self._e_target_size = tk.Entry(
             self._target_size_frame, textvariable=self._target_size_val,
-            font=("Segoe UI", 10, "bold"), bg=ACCENT, fg="#fff", width=5,
+            font=(appearance.FONT_UI, 10, "bold"), bg=ACCENT, fg="#fff", width=5,
             bd=0, justify="center", insertbackground="#fff")
         self._e_target_size.pack(side="left", ipady=1)
         self._e_target_size.bind("<Double-Button-1>", self._select_all_entry)
@@ -935,7 +945,7 @@ class App(BaseClass):
         self._target_size_unit.trace_add("write", lambda *a: self._save_settings())
         self._cb_target_unit = ttk.Combobox(
             self._target_size_frame, textvariable=self._target_size_unit,
-            values=["KB", "MB"], width=4, state="readonly", font=("Segoe UI", 9))
+            values=["KB", "MB"], width=4, state="readonly", font=(appearance.FONT_UI, 9))
         self._cb_target_unit.pack(side="left", padx=(4, 0))
 
         # ИЗМЕНЕНИЕ РАЗРЕШЕНИЯ
@@ -944,14 +954,14 @@ class App(BaseClass):
         self._resize_mode = tk.StringVar(value=self._resize_modes_localized()[0])
         self._cb_res = ttk.Combobox(_res_wf, textvariable=self._resize_mode,
                                     values=self._resize_modes_localized(),
-                                    width=32, state="readonly", font=("Segoe UI", 10))
+                                    width=32, state="readonly", font=(appearance.FONT_UI, 10))
         self._cb_res.pack()
         self._cb_res.bind("<<ComboboxSelected>>", self._on_resize_mode_changed)
 
         # ПОЛЯ РАЗМЕРА (без лейбла — прячем через пустой лейбл той же высоты)
         _sz_blk = tk.Frame(ctrl_row, bg=BG2)
         _sz_blk.pack(side="left", anchor="n", padx=(0, 16))
-        tk.Label(_sz_blk, text=" ", font=("Segoe UI", 10, "bold"),
+        tk.Label(_sz_blk, text=" ", font=(appearance.FONT_UI, 10, "bold"),
                  bg=BG2, fg=BG2).pack(anchor="w")
         self._size_inputs_frame = tk.Frame(_sz_blk, bg=BG2)
         self._size_inputs_frame.pack(anchor="w", pady=(2, 0))
@@ -960,20 +970,20 @@ class App(BaseClass):
         self._e_width = tk.Entry(
             self._size_inputs_frame, textvariable=self._w_val,
             bg=CARD, fg=FG2, state="disabled",
-            font=("Consolas", 10, "bold"), width=5, bd=0, justify="center",
+            font=(appearance.FONT_MONO, 10, "bold"), width=5, bd=0, justify="center",
             highlightthickness=1, highlightbackground=BORDER, highlightcolor=BORDER,
             insertbackground="white", insertwidth=1)
         self._e_width.pack(side="left", ipady=2)
 
         self._lbl_x = tk.Label(self._size_inputs_frame, text="×",
-                               font=("Segoe UI", 10), bg=BG2, fg=FG3)
+                               font=(appearance.FONT_UI, 10), bg=BG2, fg=FG3)
         self._lbl_x.pack(side="left", padx=4)
 
         self._h_val = tk.StringVar(value="")
         self._e_height = tk.Entry(
             self._size_inputs_frame, textvariable=self._h_val,
             bg=CARD, fg=FG2, state="disabled",
-            font=("Consolas", 10, "bold"), width=5, bd=0, justify="center",
+            font=(appearance.FONT_MONO, 10, "bold"), width=5, bd=0, justify="center",
             highlightthickness=1, highlightbackground=BORDER, highlightcolor=BORDER,
             insertbackground="white", insertwidth=1)
         self._e_height.pack(side="left", ipady=2)
@@ -1005,10 +1015,10 @@ class App(BaseClass):
         status_row = tk.Frame(_pf_wf, bg=BG2)
         status_row.pack(anchor="w", fill="x", pady=(2, 0))
         self._status_lbl = tk.Label(status_row, textvariable=self._status,
-                                    font=("Segoe UI", 10), bg=BG2, fg=FG2, anchor="w")
+                                    font=(appearance.FONT_UI, 10), bg=BG2, fg=FG2, anchor="w")
         self._status_lbl.pack(side="left")
         self._status_err_lbl = tk.Label(status_row, textvariable=self._status_err,
-                                        font=("Segoe UI", 10), bg=BG2, fg=ACCENT2, anchor="w")
+                                        font=(appearance.FONT_UI, 10), bg=BG2, fg=HEART_RED, anchor="w")
         self._status_err_lbl.pack(side="left", padx=(6, 0))
 
         # КНОПКА КОНВЕРТАЦИИ — на уровне лейблов (верхний ряд блока)
@@ -1026,11 +1036,11 @@ class App(BaseClass):
         self._stats_frame = _sz_wf2
         self._lbl_size_src = tk.Label(self._stats_frame,
                                       text=f"{self.t('was')}  0.0 KB",
-                                      font=("Consolas", 10), bg=BG2, fg=FG2, anchor="w")
+                                      font=(appearance.FONT_MONO, 10), bg=BG2, fg=FG2, anchor="w")
         self._lbl_size_src.pack(anchor="w")
         self._lbl_size_dst = tk.Label(self._stats_frame,
                                       text=f"{self.t('became')} 0.0 KB",
-                                      font=("Consolas", 10, "bold"), bg=BG2, fg=FG3, anchor="w")
+                                      font=(appearance.FONT_MONO, 10, "bold"), bg=BG2, fg=FG3, anchor="w")
         self._lbl_size_dst.pack(anchor="w")
 
     def _make_tree(self, parent, title, col, is_result=False):
@@ -1043,7 +1053,7 @@ class App(BaseClass):
         hdr = tk.Frame(card, bg=BG3, pady=6)
         hdr.pack(fill="x")
 
-        lbl = tk.Label(hdr, text=title, font=("Segoe UI", 10, "bold"), bg=BG3, fg=FG, padx=10)
+        lbl = tk.Label(hdr, text=title, font=(appearance.FONT_UI, 10, "bold"), bg=BG3, fg=FG, padx=10)
         lbl.pack(side="left")
 
         inner = tk.Frame(card, bg=CARD)
@@ -1088,7 +1098,7 @@ class App(BaseClass):
         CustomScrollbar(inner, tree)
 
         tree.tag_configure("ok",   foreground=GREEN)
-        tree.tag_configure("fail", foreground=ACCENT2)
+        tree.tag_configure("fail", foreground=HEART_RED)
         tree.bind("<MouseWheel>",
                   lambda e: tree.yview_scroll(int(-1 * (e.delta / 120)), "units"))
         return card, tree, lbl
@@ -1277,7 +1287,7 @@ class App(BaseClass):
         bn  = ACCENT if accent else CARD
         fn  = "#fff"  if accent else (FG3 if dim else (FG if light else FG2))
         bh  = ACCENT2 if accent else BG3
-        fnt = ("Segoe UI", 11, "bold") if big else ("Segoe UI", 10)
+        fnt = (appearance.FONT_UI, 11, "bold") if big else (appearance.FONT_UI, 10)
         px, py = (20, 9) if big else (11, 5)
         # На светлой теме не-accent кнопки при hover используют тёмный текст
         # (BG3 светло-серый, белый текст на нём нечитаем)
@@ -1509,24 +1519,24 @@ class App(BaseClass):
         if self._heart_hovered:
             self.after(1000, self._animate_heart_pulse)
             return
-        self._hbtn.config(font=("Segoe UI", 20, "bold"), fg=HEART_RED)
+        self._hbtn.config(font=(appearance.FONT_UI, 20, "bold"), fg=HEART_RED)
         self.after(_HEART_BEAT1_MS,
-                   lambda: self._hbtn.config(font=("Segoe UI", 16), fg=FG3)
+                   lambda: self._hbtn.config(font=(appearance.FONT_UI, 16), fg=FG3)
                    if not self._heart_hovered else None)
         self.after(_HEART_BEAT2_MS,
-                   lambda: self._hbtn.config(font=("Segoe UI", 19, "bold"), fg=ACCENT2)
+                   lambda: self._hbtn.config(font=(appearance.FONT_UI, 19, "bold"), fg=ACCENT2)
                    if not self._heart_hovered else None)
         self.after(_HEART_BEAT3_MS,
-                   lambda: self._hbtn.config(font=("Segoe UI", 16), fg=FG3)
+                   lambda: self._hbtn.config(font=(appearance.FONT_UI, 16), fg=FG3)
                    if not self._heart_hovered else None)
         self.after(random.randint(_HEART_MIN_IDLE, _HEART_MAX_IDLE), self._animate_heart_pulse)
 
     def _on_heart_hover(self, is_enter):
         self._heart_hovered = is_enter
         if is_enter:
-            self._hbtn.config(fg=HEART_RED, font=("Segoe UI", 21, "bold"))
+            self._hbtn.config(fg=HEART_RED, font=(appearance.FONT_UI, 21, "bold"))
         else:
-            self._hbtn.config(fg=FG3, font=("Segoe UI", 16))
+            self._hbtn.config(fg=FG3, font=(appearance.FONT_UI, 16))
 
     # ── управление папкой вывода ──────────────────────────────────────────────
 

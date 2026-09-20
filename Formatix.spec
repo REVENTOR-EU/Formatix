@@ -5,7 +5,7 @@ a = Analysis(
     ['formatix.py'],
     pathex=[],
     binaries=[],
-    datas=[],
+    datas=[('fonts', 'fonts')],
     hiddenimports=[],
     hookspath=[],
     hooksconfig={},

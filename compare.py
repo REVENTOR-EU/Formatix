@@ -28,6 +28,7 @@ from tkinter import ttk
 import os
 from PIL import Image, ImageTk
 
+import appearance
 from converter import load_pil_for_display
 
 
@@ -64,7 +65,7 @@ class FancySlider(tk.Frame):
 
         self.entry_var = tk.StringVar(value=str(self._var.get()))
         self.entry = tk.Entry(self, textvariable=self.entry_var,
-                              font=("Segoe UI", 10, "bold"),
+                              font=(appearance.FONT_UI, 10, "bold"),
                               bg=self._accent, fg="#fff", width=4,
                               bd=0, justify="center", insertbackground="#fff")
         self.entry.pack(side="left", ipady=1)
@@ -107,12 +108,12 @@ class FancySlider(tk.Frame):
         if enabled:
             self.scale.config(state="normal")
             self.entry.config(state="normal", bg=self._accent, fg="#fff",
-                              font=("Segoe UI", 10, "bold"))
+                              font=(appearance.FONT_UI, 10, "bold"))
             self.entry_var.set(str(self._var.get()))
         else:
             self.scale.config(state="disabled")
             self.entry.config(state="disabled", bg=self._bg3, fg=self._fg3,
-                              font=("Consolas", 10, "bold"))
+                              font=(appearance.FONT_MONO, 10, "bold"))
             self.entry_var.set("—")
 
 
@@ -235,7 +236,7 @@ class Compare(tk.Toplevel):
         top.pack(fill="x", side="bottom")
 
         self._title_lbl = tk.Label(top, text=f"{self._src_name}   ⇄   {self._dst_name}",
-                 font=("Segoe UI", 11, "bold"),
+                 font=(appearance.FONT_UI, 11, "bold"),
                  bg=self._bg2, fg=self._fg)
         self._title_lbl.pack(side="left", padx=16)
 
@@ -243,18 +244,18 @@ class Compare(tk.Toplevel):
         nav_frame = tk.Frame(top, bg=self._bg2)
         nav_frame.place(relx=0.5, rely=0.5, anchor="center")
 
-        self._nav_prev_btn = tk.Label(nav_frame, text="◀", font=("Segoe UI", 12, "bold"),
+        self._nav_prev_btn = tk.Label(nav_frame, text="◀", font=(appearance.FONT_UI, 12, "bold"),
                                       bg=self._bg2, fg=self._fg2, cursor="hand2", padx=10)
         self._nav_prev_btn.pack(side="left")
         self._nav_prev_btn.bind("<Button-1>", lambda e: self._navigate(-1))
         self._nav_prev_btn.bind("<Enter>", lambda e: self._on_nav_hover(self._nav_prev_btn, True))
         self._nav_prev_btn.bind("<Leave>", lambda e: self._on_nav_hover(self._nav_prev_btn, False))
 
-        self._nav_counter_lbl = tk.Label(nav_frame, text="", font=("Segoe UI", 9),
+        self._nav_counter_lbl = tk.Label(nav_frame, text="", font=(appearance.FONT_UI, 9),
                                          bg=self._bg2, fg=self._fg3, padx=8)
         self._nav_counter_lbl.pack(side="left")
 
-        self._nav_next_btn = tk.Label(nav_frame, text="▶", font=("Segoe UI", 12, "bold"),
+        self._nav_next_btn = tk.Label(nav_frame, text="▶", font=(appearance.FONT_UI, 12, "bold"),
                                       bg=self._bg2, fg=self._fg2, cursor="hand2", padx=10)
         self._nav_next_btn.pack(side="left")
         self._nav_next_btn.bind("<Button-1>", lambda e: self._navigate(1))
@@ -266,7 +267,7 @@ class Compare(tk.Toplevel):
         zoom_frame = tk.Frame(top, bg=self._bg2)
         zoom_frame.pack(side="right", padx=(0, 18))
 
-        tk.Label(zoom_frame, text="🔍", font=("Segoe UI", 10),
+        tk.Label(zoom_frame, text="🔍", font=(appearance.FONT_UI, 10),
                  bg=self._bg2, fg=self._fg2).pack(side="left", padx=(0, 4))
 
         self._zoom_slider = FancySlider(
@@ -276,7 +277,7 @@ class Compare(tk.Toplevel):
         )
         self._zoom_slider.pack(side="left")
 
-        self._zoom_lbl = tk.Label(zoom_frame, text="100%", font=("Segoe UI", 9),
+        self._zoom_lbl = tk.Label(zoom_frame, text="100%", font=(appearance.FONT_UI, 9),
                                   bg=self._bg2, fg=self._fg2, width=4, anchor="w")
         self._zoom_lbl.pack(side="left", padx=(6, 0))
 
@@ -670,7 +671,7 @@ class Compare(tk.Toplevel):
                                                         fill=self._bg2, outline="",
                                                         stipple="gray50")
             self._lbl_before_text = c.create_text(tx, ty, text=was_txt,
-                                                   font=("Segoe UI", 9, "bold"),
+                                                   font=(appearance.FONT_UI, 9, "bold"),
                                                    fill=self._fg2, anchor="center")
         else:
             c.coords(self._lbl_before_bg,   bx0, by0, bx1, by1)
@@ -685,7 +686,7 @@ class Compare(tk.Toplevel):
                                                        fill=self._bg2, outline="",
                                                        stipple="gray50")
             self._lbl_after_text = c.create_text(atx, aty, text=became_txt,
-                                                  font=("Segoe UI", 9, "bold"),
+                                                  font=(appearance.FONT_UI, 9, "bold"),
                                                   fill=self._fg2, anchor="center")
         else:
             c.coords(self._lbl_after_bg,   ax0, ay0, ax1, ay1)

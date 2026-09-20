@@ -51,6 +51,7 @@ import os
 import sys
 import webbrowser
 
+import appearance
 from localization import LANGUAGES
 from converter import render_filename_template, sanitize_filename_part
 
@@ -102,13 +103,13 @@ def open_settings_window(app, colors):
         win.geometry(f"{ww}x{req_h}+{win.winfo_x()}+{win.winfo_y()}")
 
     settings_title_lbl = tk.Label(win, text=app.t("settings_title"),
-                                  font=("Segoe UI", 12, "bold"), bg=BG, fg=FG)
+                                  font=(appearance.FONT_UI, 12, "bold"), bg=BG, fg=FG)
     settings_title_lbl.pack(pady=(18, 14))
 
     # Уведомление о необходимости перезапуска — появляется только когда нужно,
     # сразу под заголовком, перед языком интерфейса
     restart_note = tk.Label(win, text="",
-                            font=("Segoe UI", 8), bg=BG, fg=ACCENT2,
+                            font=(appearance.FONT_UI, 8), bg=BG, fg=ACCENT2,
                             wraplength=260, justify="center")
     # .pack()/.pack_forget() управляются в _show_restart_note()
 
@@ -116,12 +117,12 @@ def open_settings_window(app, colors):
     row.pack(padx=24, fill="x")
 
     lang_lbl = tk.Label(row, text=app.t("settings_lang"),
-                        font=("Segoe UI", 10), bg=BG, fg=FG2)
+                        font=(appearance.FONT_UI, 10), bg=BG, fg=FG2)
     lang_lbl.pack(side="left")
 
     lang_names = list(LANGUAGES.values())
     cb = ttk.Combobox(row, values=lang_names, width=14,
-                      state="readonly", font=("Segoe UI", 10))
+                      state="readonly", font=(appearance.FONT_UI, 10))
     cb.set(LANGUAGES[app._lang])
     cb.pack(side="right")
 
@@ -129,13 +130,13 @@ def open_settings_window(app, colors):
     theme_row.pack(padx=24, fill="x", pady=(6, 0))
 
     theme_lbl = tk.Label(theme_row, text=app.t("settings_theme"),
-                         font=("Segoe UI", 10), bg=BG, fg=FG2)
+                         font=(appearance.FONT_UI, 10), bg=BG, fg=FG2)
     theme_lbl.pack(side="left")
 
     theme_names = [app.t("theme_dark"), app.t("theme_light")]
     theme_keys  = ["dark", "light"]
     theme_cb = ttk.Combobox(theme_row, values=theme_names, width=14,
-                            state="readonly", font=("Segoe UI", 10))
+                            state="readonly", font=(appearance.FONT_UI, 10))
     theme_cb.set(app.t("theme_dark") if app._theme == "dark" else app.t("theme_light"))
     theme_cb.pack(side="right")
 
@@ -165,7 +166,7 @@ def open_settings_window(app, colors):
     remember_row.pack(padx=24, fill="x", pady=(6, 0))
 
     remember_lbl = tk.Label(remember_row, text=app.t("settings_remember"),
-                            font=("Segoe UI", 10), bg=BG, fg=FG2, cursor="hand2")
+                            font=(appearance.FONT_UI, 10), bg=BG, fg=FG2, cursor="hand2")
     remember_lbl.pack(side="left")
 
     BOX = 16
@@ -198,7 +199,7 @@ def open_settings_window(app, colors):
     check_row.pack(padx=24, fill="x", pady=(6, 0))
 
     check_lbl = tk.Label(check_row, text=app.t("settings_check_updates"),
-                         font=("Segoe UI", 10), bg=BG, fg=FG2, cursor="hand2")
+                         font=(appearance.FONT_UI, 10), bg=BG, fg=FG2, cursor="hand2")
     check_lbl.pack(side="left")
 
     check_canvas = tk.Canvas(check_row, width=BOX, height=BOX,
@@ -230,7 +231,7 @@ def open_settings_window(app, colors):
     delorig_row.pack(padx=24, fill="x", pady=(6, 0))
 
     delorig_lbl = tk.Label(delorig_row, text=app.t("settings_delete_original"),
-                           font=("Segoe UI", 10), bg=BG, fg=FG2, cursor="hand2")
+                           font=(appearance.FONT_UI, 10), bg=BG, fg=FG2, cursor="hand2")
     delorig_lbl.pack(side="left")
 
     delorig_canvas = tk.Canvas(delorig_row, width=BOX, height=BOX,
@@ -260,7 +261,7 @@ def open_settings_window(app, colors):
     # Ручная проверка — работает независимо от чекбокса выше: отключённая
     # автопроверка не должна лишать возможности проверить вручную.
     check_now_lbl = tk.Label(win, text=app.t("update_check_now"),
-                             font=("Segoe UI", 9), bg=BG, fg=ACCENT, cursor="hand2")
+                             font=(appearance.FONT_UI, 9), bg=BG, fg=ACCENT, cursor="hand2")
     check_now_lbl.pack(padx=24, anchor="w", pady=(4, 0))
 
     # Хранит найденное обновление, пока открыто окно настроек: если версия
@@ -353,7 +354,7 @@ def open_settings_window(app, colors):
     fn_sep.pack(fill="x", padx=24, pady=(6, 6))
 
     fn_title = tk.Label(win, text=app.t("settings_filename_lbl"),
-                        font=("Segoe UI", 10, "bold"), bg=BG, fg=FG2)
+                        font=(appearance.FONT_UI, 10, "bold"), bg=BG, fg=FG2)
     fn_title.pack(padx=24, anchor="w")
 
     fn_preset_row = tk.Frame(win, bg=BG)
@@ -362,7 +363,7 @@ def open_settings_window(app, colors):
     PRESET_KEYS = ["original", "number", "date", "custom"]
 
     fn_preset_cb = ttk.Combobox(fn_preset_row, state="readonly",
-                                font=("Segoe UI", 9))
+                                font=(appearance.FONT_UI, 9))
     fn_preset_cb.pack(fill="x")
 
     # ── Карточка "Свой шаблон" (появляется только при этом пресете) ───────
@@ -375,7 +376,7 @@ def open_settings_window(app, colors):
     builder_head = tk.Frame(builder_card, bg=CARD_TINT)
     builder_head.pack(fill="x", padx=10, pady=(9, 0))
     builder_head_lbl = tk.Label(builder_head, text=app.t("fn_preset_custom"),
-                                font=("Segoe UI", 9, "bold"), bg=CARD_TINT, fg=ACCENT)
+                                font=(appearance.FONT_UI, 9, "bold"), bg=CARD_TINT, fg=ACCENT)
     builder_head_lbl.pack(side="left")
 
     builder_frame = tk.Frame(builder_card, bg=CARD_TINT)
@@ -406,9 +407,9 @@ def open_settings_window(app, colors):
     preview_row = tk.Frame(win, bg=BG)
     preview_row.pack(padx=24, fill="x", pady=(6, 18))
     preview_caption = tk.Label(preview_row, text=app.t("fn_preview_lbl"),
-                               font=("Segoe UI", 8), bg=BG, fg=FG3)
+                               font=(appearance.FONT_UI, 8), bg=BG, fg=FG3)
     preview_caption.pack(side="left")
-    preview_val = tk.Label(preview_row, text="", font=("Consolas", 9, "bold"),
+    preview_val = tk.Label(preview_row, text="", font=(appearance.FONT_MONO, 9, "bold"),
                            bg=BG, fg=FG)
     preview_val.pack(side="left", padx=(6, 0))
 
@@ -426,7 +427,7 @@ def open_settings_window(app, colors):
             w.destroy()
         if not app._filename_tokens:
             tk.Label(chips_inner, text=app.t("fn_empty_hint"),
-                    font=("Segoe UI", 8), bg=CARD, fg=FG3).pack(side="left")
+                    font=(appearance.FONT_UI, 8), bg=CARD, fg=FG3).pack(side="left")
             return
         chip_style = {
             "name":  (ACCENT, "#ffffff", lambda tok: app.t("fn_add_name")),
@@ -437,7 +438,7 @@ def open_settings_window(app, colors):
         for idx, tok in enumerate(app._filename_tokens):
             bg_c, fg_c, text_fn = chip_style.get(tok.get("type"), (BG3, FG2, lambda t: "?"))
             chip = tk.Label(chips_inner, text=f"{text_fn(tok)} ✕",
-                            font=("Segoe UI", 8, "bold"), bg=bg_c, fg=fg_c,
+                            font=(appearance.FONT_UI, 8, "bold"), bg=bg_c, fg=fg_c,
                             padx=6, pady=2, cursor="hand2")
             chip.pack(side="left", padx=(0, 4))
             chip.bind("<Button-1>", lambda e, i=idx: _remove_token(i))
@@ -540,11 +541,11 @@ def open_donate_window(app, colors):
     y = app.winfo_y() + (app.winfo_height() - 300) // 2
     win.geometry(f"+{x}+{y}")
 
-    tk.Label(win, text="♥", font=("Segoe UI", 28), bg=BG, fg=HEART_RED).pack(pady=(16, 2))
+    tk.Label(win, text="♥", font=(appearance.FONT_UI, 28), bg=BG, fg=HEART_RED).pack(pady=(16, 2))
     tk.Label(win, text=app.t("donate_sub"),
-             font=("Segoe UI", 12, "bold"), bg=BG, fg=FG).pack()
+             font=(appearance.FONT_UI, 12, "bold"), bg=BG, fg=FG).pack()
 
-    tk.Label(win, text=app.t("donate_desc"), font=("Segoe UI", 10),
+    tk.Label(win, text=app.t("donate_desc"), font=(appearance.FONT_UI, 10),
              bg=BG, fg=FG, justify="center").pack(pady=15)
 
     def _open_wallets():
@@ -552,7 +553,7 @@ def open_donate_window(app, colors):
         win.destroy()
 
     btn = tk.Button(win, text=app.t("donate_btn"),
-                    font=("Segoe UI", 11, "bold"),
+                    font=(appearance.FONT_UI, 11, "bold"),
                     bg=ACCENT, fg="#fff", activebackground=ACCENT2,
                     activeforeground="#fff", relief="flat", padx=20, pady=9,
                     command=_open_wallets, cursor="hand2")
