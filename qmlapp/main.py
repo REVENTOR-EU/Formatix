@@ -856,6 +856,9 @@ def main():
     engine.load(os.path.join(os.path.dirname(__file__), "qml", "Main.qml"))
     if not engine.rootObjects():
         sys.exit(1)
+    # Fenstersymbol (Taskleiste/Titel) — das exe-Icon allein reicht unter
+    # Qt nicht immer
+    engine.rootObjects()[0].setIcon(QIcon(os.path.join(APP_DIR, "icon.ico")))
     sys.exit(app.exec())
 
 

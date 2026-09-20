@@ -210,13 +210,15 @@ ApplicationWindow {
                 Item { Layout.fillWidth: true }
                 AppButton { label: tt("settings_title"); onActivated: { settingsSheet.openSheet() } }
                 Image {
+                    // RowLayout ignoriert width/height — hier müssen
+                    // Layout.preferred* verwendet werden, sonst skaliert
+                    // das Layout das Bild auf die implizite SVG-Größe
+                    Layout.preferredHeight: 32
+                    Layout.preferredWidth: 276
                     Layout.alignment: Qt.AlignVCenter
                     source: B.reventorBanner
                     fillMode: Image.PreserveAspectFit
                     smooth: true; mipmap: true
-                    // gleiche Höhe wie der Settings-Button (32 px),
-                    // Breite folgt dem Banner-Seitenverhältnis (431:50)
-                    height: 32; width: 276
                     MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: B.openReventor() }
                 }
             }
