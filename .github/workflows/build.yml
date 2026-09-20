@@ -79,7 +79,7 @@ jobs:
         if: runner.os == 'Linux'
         shell: bash
         run: |
-          mkdir -p pkg
+          mkdir -p dist_out pkg
           cp dist/REVENTOR-Image-Compressor pkg/
           chmod +x pkg/REVENTOR-Image-Compressor
           cp packaging/reventor-image-compressor.desktop pkg/
