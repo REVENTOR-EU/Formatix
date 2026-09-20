@@ -1428,7 +1428,7 @@ class App(BaseClass):
         если для текущего формата параметр качества не применяется вовсе
         (PNG/BMP/TIFF/ICO)."""
         mode              = self._quality_mode.get()
-        quality_matters   = self._fmt.get() in ("JPEG", "WEBP", "HEIC", "AVIF")
+        quality_matters   = self._fmt.get() in ("JPEG", "WEBP", "HEIC", "AVIF", "JXL")
 
         if mode == "percent":
             self._target_size_frame.pack_forget()
