@@ -571,6 +571,12 @@ ApplicationWindow {
                    Layout.alignment: Qt.AlignHCenter }
 
             // Язык
+            ColumnLayout {
+                id: settingsMain
+                visible: true
+                width: parent.width
+                spacing: 14
+
             RowLayout { Layout.fillWidth: true; spacing: 10
                 Text { text: tt("settings_lang"); color: B.fg; font.pixelSize: 13 }
                 Item { Layout.fillWidth: true }
@@ -634,6 +640,7 @@ ApplicationWindow {
                     model: B.tokens
                     delegate: Rectangle {
                         required property var modelData
+                        required property int index
                         property int tindex: index
                         radius: 9; implicitHeight: 24; width: chipLbl.implicitWidth + 30
                         color: modelData.type === "name" ? B.accent : (modelData.type === "index" ? B.accentHover : B.bg3)
@@ -661,6 +668,76 @@ ApplicationWindow {
                     MouseArea { anchors.fill: parent; enabled: parent.text.indexOf("→") > 0
                                 cursorShape: Qt.PointingHandCursor; onClicked: B.openUpdateUrl() }
                 }
+            }
+
+            RowLayout { Layout.fillWidth: true; spacing: 10
+                Text { text: "ⓘ " + tt("about"); color: B.accent; font.pixelSize: 13
+                    MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: {
+                        settingsMain.visible = false
+                        settingsAbout.visible = true
+                    } } }
+                Item { Layout.fillWidth: true }
+            }
+            }
+
+            // ── экран «About» внутри окна настроек ────────────────────────
+            ColumnLayout {
+                id: settingsAbout
+                visible: false
+                width: parent.width
+                spacing: 14
+
+            Text {
+                Layout.fillWidth: true
+                horizontalAlignment: Text.AlignHCenter
+                text: "ⓘ " + tt("about"); color: B.fg; font.pixelSize: 15; font.weight: Font.DemiBold
+            }
+            Text {
+                Layout.fillWidth: true
+                horizontalAlignment: Text.AlignHCenter
+                text: tt("original_author"); color: B.fg2; font.pixelSize: 12
+            }
+            Text {
+                Layout.fillWidth: true
+                horizontalAlignment: Text.AlignHCenter
+                text: "github.com/cyber-anderson"; color: B.accent; font.pixelSize: 11
+                MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: B.openOriginalAuthor() }
+            }
+
+            Text {
+                Layout.fillWidth: true
+                horizontalAlignment: Text.AlignHCenter
+                text: tt("contrib_line"); color: B.fg2; font.pixelSize: 11
+            }
+
+            Item {
+                Layout.fillWidth: true
+                height: 26
+                Image {
+                    anchors.centerIn: parent
+                    width: 200; height: 24
+                    source: B.reventorBanner
+                    fillMode: Image.PreserveAspectFit
+                    smooth: true; mipmap: true
+                }
+                MouseArea {
+                    anchors.fill: parent; cursorShape: Qt.PointingHandCursor
+                    onClicked: B.openReventor()
+                }
+            }
+            Text {
+                Layout.fillWidth: true
+                horizontalAlignment: Text.AlignHCenter
+                text: "reventor.eu"; color: B.accent; font.pixelSize: 10
+                MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: B.openReventor() }
+            }
+
+            Text {
+                Layout.alignment: Qt.AlignHCenter
+                text: "← " + tt("settings_title"); color: B.accent; font.pixelSize: 12
+                MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor
+                            onClicked: { settingsAbout.visible = false; settingsMain.visible = true } }
+            }
             }
 
             Item { Layout.fillHeight: true }

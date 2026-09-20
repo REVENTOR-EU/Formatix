@@ -5,7 +5,7 @@ a = Analysis(
     ['formatix.py'],
     pathex=[],
     binaries=[],
-    datas=[('fonts', 'fonts'), ('qmlapp/qml', 'qmlapp/qml')],
+    datas=[('fonts', 'fonts'), ('qmlapp/qml', 'qmlapp/qml'), ('assets', 'assets')],
     hiddenimports=[],
     hookspath=['hooks'],
     hooksconfig={},

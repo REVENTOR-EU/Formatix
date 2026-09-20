@@ -791,6 +791,26 @@ class Backend(QObject):
         if u:
             _open_path(u)
 
+    # ── REVENTOR banner (About) ───────────────────────────────────────────────
+    def _asset_path(self, name):
+        base = os.environ.get("_MEIPASS", os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+        p = os.path.join(base, "assets", name)
+        return p if os.path.isfile(p) else ""
+
+    def _asset_url(self, name):
+        p = self._asset_path(name)
+        return QUrl.fromLocalFile(p) if p else QUrl("")
+
+    reventorBanner = Property(QUrl, lambda self: self._asset_url("reventor_banner.svg"), constant=True)
+
+    @Slot()
+    def openReventor(self):
+        _open_path("https://reventor.eu")
+
+    @Slot()
+    def openOriginalAuthor(self):
+        _open_path("https://github.com/cyber-anderson")
+
 
 def _svg_size(path):
     from converter import get_svg_resolution_pure
