@@ -23,9 +23,9 @@ jobs:
             binary: REVENTOR-Image-Compressor.exe
             icon: --icon icon.ico
           - os: macos-latest
-            artifact: REVENTOR-Image-Compressor-macOS.zip
+            artifact: REVENTOR-Image-Compressor-macOS.dmg
             binary: REVENTOR-Image-Compressor
-            icon: ""
+            icon: --icon icon.icns
           - os: ubuntu-22.04
             artifact: REVENTOR-Image-Compressor-Linux-AppImage
             binary: REVENTOR-Image-Compressor
@@ -49,6 +49,11 @@ jobs:
       - name: Install Python dependencies
         run: pip install Pillow pillow-heif pillow-jxl-plugin PySide6 resvg-py pyinstaller
 
+      - name: Generate macOS icns icon
+        if: runner.os == 'macOS'
+        run: |
+          python -c "from PIL import Image; img = Image.open('packaging/reventor-logo.png').convert('RGBA'); img.resize((512,512)).save('icon.icns', sizes=[(512,512),(256,256),(128,128),(64,64),(32,32),(16,16)])"
+
       - name: Build
         shell: bash
         run: >
@@ -61,13 +66,14 @@ jobs:
           --exclude-module numpy
           formatix.py
 
-      - name: Package macOS .app bundle
+      - name: Package macOS DMG
         if: runner.os == 'macOS'
         shell: bash
         run: |
-          mkdir -p dist_out
-          cd dist
-          zip -r ../dist_out/REVENTOR-Image-Compressor-macOS.zip             "REVENTOR-Image-Compressor.app"
+          mkdir -p dist_out dmg_staging
+          cp -r "dist/REVENTOR-Image-Compressor.app" dmg_staging/
+          ln -s /Applications dmg_staging/Applications
+          hdiutil create -volname "REVENTOR Image Compressor"             -srcfolder dmg_staging -ov -format UDZO             "dist_out/REVENTOR-Image-Compressor-macOS.dmg"
 
       - name: Package Linux archive with installer
         if: runner.os == 'Linux'
