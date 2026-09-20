@@ -113,7 +113,10 @@ class SimpleModel(QAbstractListModel):
 
     def __init__(self, roles):
         super().__init__()
-        self._roles = {i: QByteArray(r.encode()) for i, r in enumerate(roles)}
+        # Номера ролей обязаны начинаться с Qt.UserRole — иначе конфликт
+        # со встроенными ролями Qt (DisplayRole и т.п.) и пустые строки в QML
+        self._roles = {Qt.UserRole + i: QByteArray(r.encode())
+                       for i, r in enumerate(roles)}
         self._rows = []
 
     def roleNames(self):
@@ -134,7 +137,7 @@ class SimpleModel(QAbstractListModel):
 
 
 class Backend(QObject):
-    converted = Signal(int, str, str, str, bool)   # idx, name, res, size, ok  (поток → GUI)
+    converted = Signal(int, str, str, str, bool, bool)  # idx, name, res, size, ok, skipped
 
     def __init__(self):
         super().__init__()
@@ -180,7 +183,7 @@ class Backend(QObject):
         self._update_state = ""
 
         self.files_model = SimpleModel(["name", "res", "size"])
-        self.results_model = SimpleModel(["ok", "name", "res", "size"])
+        self.results_model = SimpleModel(["ok", "name", "res", "size", "skipped"])
         self._refresh_files_model()
 
         self.converted.connect(self._on_converted)
@@ -651,7 +654,7 @@ class Backend(QObject):
             pool = ThreadPoolExecutor(max_workers=workers_n)
             futures = {}
             done = 0
-            ok = err = 0
+            ok = err = skipped_cnt = 0
             try:
                 for f in files:
                     fdir, out_name = alloc[f["path"]]
@@ -664,35 +667,51 @@ class Backend(QObject):
                     res = fu.result()
                     f = futures[fu]
                     done += 1
+                    skipped = False
                     if res["success"]:
+                        # Сжатие не должно увеличивать файл: если результат
+                        # не меньше оригинала — удаляем его и помечаем пропуск
+                        try:
+                            if res["f_size"] >= os.path.getsize(f["path"]):
+                                os.remove(res["out_path"])
+                                skipped = True
+                        except OSError:
+                            skipped = False
+                    if skipped:
+                        skipped_cnt += 1
+                    elif res["success"]:
                         ok += 1
                     else:
                         err += 1
                     # удаление оригинала после успешной конвертации
-                    if res["success"] and delete_original:
+                    if res["success"] and delete_original and not skipped:
                         try:
                             if os.path.abspath(f["path"]) != os.path.abspath(res["out_path"]):
                                 os.remove(f["path"])
                         except OSError:
                             pass
                     self.converted.emit(done - 1, res["out_name"], res["res_str"],
-                                        res["size_str"], res["success"])
+                                        res["size_str"], res["success"], skipped)
                     self._gui_queue.put({"done": done, "total": total,
                                          "name": os.path.basename(f["path"]),
-                                         "size": res["f_size"], "ok": ok, "err": err})
+                                         "size": res["f_size"], "ok": ok,
+                                         "err": err, "skipped": skipped_cnt})
                     if self._stop_requested:
                         break
             finally:
                 pool.shutdown(wait=False, cancel_futures=True)
             stopped = self._stop_requested
             self._gui_queue.put({"finish": True, "ok": ok, "err": err,
+                                 "skipped": skipped_cnt,
                                  "stopped": stopped, "total": total})
 
         threading.Thread(target=worker, daemon=True).start()
 
-    def _on_converted(self, idx, name, res, size, ok):
+    def _on_converted(self, idx, name, res, size, ok, skipped):
         rows = list(self.results_model._rows)
-        rows.append({"ok": ok, "name": name, "res": res, "size": size})
+        rows.append({"ok": ok, "name": name, "res": res,
+                     "size": (self.trKey("skipped_larger") if skipped else size),
+                     "skipped": skipped})
         self.results_model.reset(rows)
 
     def _drain_queue(self):
@@ -707,7 +726,9 @@ class Backend(QObject):
                     if msg["stopped"]:
                         self._status = f"■  {self.trKey('processing_btn')} — {msg['ok']}/{msg['total']}"
                     else:
-                        self._status = f"✔ {msg['ok']}" + (f"  ✘ {msg['err']}" if msg["err"] else "")
+                        self._status = (f"✔ {msg['ok']}"
+                                    + (f"  ✘ {msg['err']}" if msg["err"] else "")
+                                    + (f"  ⊘ {msg['skipped']}" if msg["skipped"] else ""))
                     self.statusChanged.emit()
                 else:
                     self._progress = round(msg["done"] / msg["total"] * 100)

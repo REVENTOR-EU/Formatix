@@ -313,10 +313,15 @@ ApplicationWindow {
                             delegate: RowLayout {
                                 width: resList.width
                                 height: 30
-                                Text { text: model.ok ? "✔" : "✘"; color: model.ok ? B.green : B.red; font.pixelSize: 12 }
-                                Text { Layout.fillWidth: true; text: model.name; color: B.fg; font.pixelSize: 13; elide: Text.ElideMiddle }
+                                Text { text: model.skipped ? "⊘" : (model.ok ? "✔" : "✘")
+                                       color: model.skipped ? B.fg3 : (model.ok ? B.green : B.red); font.pixelSize: 12 }
+                                Text { Layout.fillWidth: true; text: model.name
+                                       color: model.skipped ? B.fg3 : B.fg
+                                       font.pixelSize: 13; font.strikeout: model.skipped; elide: Text.ElideMiddle }
                                 Text { text: model.res; color: B.fg2; font.pixelSize: 12; Layout.preferredWidth: 70; horizontalAlignment: Text.AlignRight }
-                                Text { text: model.size; color: B.fg2; font.pixelSize: 12; Layout.preferredWidth: 64; horizontalAlignment: Text.AlignRight }
+                                Text { text: model.size; color: model.skipped ? B.fg3 : B.fg2
+                                       font.pixelSize: 12; Layout.preferredWidth: 150
+                                       horizontalAlignment: Text.AlignRight; elide: Text.ElideRight }
                             }
                         }
                         Text { visible: B.filesCount > 0 && resList.count === 0
