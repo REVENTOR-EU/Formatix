@@ -58,7 +58,7 @@ Compared to the original Formatix, this fork delivers:
 ## Installation & Running
 
 ### Option 1 — Portable Executable (Windows)
-Download the latest `REVENTORImageCompressor.exe` from [Releases](https://github.com/REVENTOR-EU/Formatix/releases) and run it directly. No installation required.
+Download the latest `REVENTOR-Image-Compressor.exe` from [Releases](https://github.com/REVENTOR-EU/Formatix/releases) and run it directly. No installation required.
 
 ### Option 2 — Run from Source
 
