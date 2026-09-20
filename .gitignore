@@ -3,3 +3,4 @@ build/
 dist/
 *.spec.bak
 .zcode/
+_gh_auth.txt
